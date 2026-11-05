@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="vi"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trạm Tư Vấn Xe Điện VinFast</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    body {
+      background-color: #EFF3F8;
+      color: #1E293B;
+      min-height: 100vh;
+    }
+
+    /* THANH HEADER MOBILE (CÓ NÚT Ô VUÔNG 3 GẠCH) - Mặc định ẩn trên PC */
+    .mobile-topbar {
+      display: none;
+      background-color: #FFFFFF;
+      padding: 12px 16px;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid #E2E8F0;
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+    .menu-toggle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid #E2E8F0;
+      background-color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #1E293B;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .mobile-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .mobile-brand span {
+      color: #1464F4;
+      font-weight: 700;
+    }
+
+    /* LỚP PHỦ MỜ KHI MỞ MENU TRÊN MOBILE */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.45);
+      z-index: 998;
+    }
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    /* KHUNG TỔNG PC */
+    .dashboard-wrapper {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+    }
+
+    /* CỘT TRÁI - SIDEBAR */
+    .sidebar {
+      width: 270px;
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      padding: 24px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 840px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .brand-logo {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .brand-logo span {
+      color: #1464F4;
+    }
+    .brand-badge {
+      background-color: #EDE9FE;
+      color: #6D28D9;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+    .profile-box {
+      text-align: center;
+      padding-bottom: 16px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .avatar-img {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #E0F2FE 0%, #3B82F6 60%, #1D4ED8 100%);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-size: 26px;
+      font-weight: 800;
+      box-shadow: 0 6px 16px rgba(20, 100, 244, 0.2);
+    }
+    .profile-name {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .profile-role {
+      display: inline-block;
+      background-color: #EFF6FF;
+      border: 1px solid #DBEAFE;
+      color: #1464F4;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+    .profile-sub {
+      font-size: 12px;
+      color: #64748B;
+    }
+    .menu-item-active {
+      background-color: #F0F6FF;
+      color: #1464F4;
+      font-weight: 700;
+      font-size: 13.5px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .menu-group-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #94A3B8;
+      margin: 10px 0 6px 10px;
+      text-transform: uppercase;
+    }
+    .menu-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1E293B;
+      padding: 7px 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      margin-bottom: 2px;
+      transition: background 0.2s;
+    }
+    .menu-link:hover {
+      background-color: #F8FAFC;
+      color: #1464F4;
+    }
+    .sidebar-footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #F1F5F9;
+      text-align: center;
+    }
+    .hotline-btn {
+      color: #0F172A;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* CỘT PHẢI - NỘI DUNG CHÍNH */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    /* TẦNG 1: BANNER FULL HÌNH ẢNH ĐỘC LẬP (PC & MOBILE) */
+    .banner-container {
+      width: 100%;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(20, 100, 244, 0.08);
+    }
+    .banner-pc {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 22px;
+    }
+    .banner-mobile {
+      display: none;
+      width: 100%;
+      height: auto;
+      border-radius: 22px;
+    }
+
+    /* TIÊU ĐỀ MỤC */
+    .section-heading {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1E293B;
+      margin-bottom: 14px;
+    }
+
+    /* TẦNG 2: 2 Ô LỚN */
+    .two-col-grid {
+      display: flex;
+      gap: 20px;
+    }
+    .big-card {
+      flex: 1;
+      background: linear-gradient(135deg, #FFFFFF 55%, #D8EAFE 100%);
+      border-radius: 20px;
+      padding: 26px 26px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: #64748B;
+      line-height: 1.55;
+      max-width: 80%;
+    }
+    .card-bottom-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 22px;
+    }
+    .pill-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: 1.2px solid #2563EB;
+      background-color: #FFFFFF;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1464F4;
+      text-decoration: none;
+    }
+    .decor-icon {
+      font-size: 50px;
+      color: #60A5FA;
+      opacity: 0.35;
+      line-height: 1;
+    }
+
+    /* TẦNG 3: 3 Ô NHỎ */
+    .three-col-grid {
+      display: flex;
+      gap: 20px;
+    }
+    .small-card {
+      flex: 1;
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      padding: 22px 24px;
+      min-height: 175px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+    .small-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .small-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0F172A;
+    }
+    .small-icon {
+      font-size: 20px;
+      color: #1464F4;
+    }
+    .text-link {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1464F4;
+      text-decoration: none;
+      margin-top: 16px;
+      display: inline-block;
+    }
+
+    /* NÚT NỔI GÓC DƯỚI PHẢI */
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #FFFFFF;
+      color: #0F172A;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 6px 24px rgba(15, 23, 42, 0.14);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 950;
+      border: 1px solid #E2E8F0;
+    }
+    .floating-btn span {
+      color: #1464F4;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-topbar {
+        display: flex;
+      }
+      .dashboard-wrapper {
+        padding: 16px;
+        flex-direction: column;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        min-height: 100vh;
+        border-radius: 0;
+        z-index: 999;
+        transform: translateX(-100%);
+        overflow-y: auto;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .two-col-grid,
+      .three-col-grid {
+        flex-direction: column;
+        gap: 16px;
+      }
+      /* Chuyển đổi hiển thị Banner trên Mobile */
+      .banner-pc {
+        display: none;
+      }
+      .banner-mobile {
+        display: block;
+      }
+    }
+  </style>
+  <script data-ldp-identity="">window.LadiPageScript=window.LadiPageScript||{};window.LadiPageScript.runtime=Object.assign({},window.LadiPageScript.runtime||{},{"ladipage_id":"6ae1b8a8b1eceb001253b3cf","publish_platform":"LADIPAGE"});</script>
+</head>
+<body>
+
+  <!-- THANH HEADER TRÊN MOBILE -->
+  <div class="mobile-topbar">
+    <button class="menu-toggle-btn" onclick="toggleMobileMenu()" aria-label="Mở menu">☰</button>
+    <div class="mobile-brand">VINFAST <span>Auto</span></div>
+  </div>
+
+  <!-- LỚP MỜ PHÍA SAU KHI MỞ MENU MOBILE -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- CỘT TRÁI - SIDEBAR -->
+    <div class="sidebar" id="sidebarMenu">
+      <div>
+        <div class="brand-header">
+          <div class="brand-logo">CỔNG THÔNG TIN VINFAST</div>
+          <span class="brand-badge">3S</span>
+        </div>
+
+        <div class="profile-box">
+          <div class="avatar-img" style="background: transparent; box-shadow: none;">
+            <img src="https://w.ladicdn.com/5d9a96b88c0aa631d811d695/thiet_ke_chua_co_ten-removebg-preview-20261029033424-lym7k.png" alt="Logo VinFast" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="profile-name">VinFast Bình Phước</div>
+          <div class="profile-role">Tư vấn bán hàng</div>
+          <div class="profile-sub">Khu vực Bình Phước &amp; Đồng Nai</div>
+        </div>
+
+        <a href="#tong-quan" class="menu-item-active">❖ Tổng quan &amp; Ưu đãi</a>
+
+        <div class="menu-group-title">Danh sách các dòng xe</div>
+        <a href="#vf2" class="menu-link">🚗 VF2, Minio – Tiện lợi</a>
+        <a href="#vf3" class="menu-link">🚗 VF3 – Quốc dân</a>
+        <a href="#vf5" class="menu-link">🚙 VF5 – Đô thị năng động</a>
+        <a href="#vf6" class="menu-link">🚙 VF6 – Gia đình trẻ</a>
+        <a href="#vf7" class="menu-link">🚘 VF7 – SUV thể thao</a>
+        <a href="#vf8" class="menu-link">🚘 VF8 – Kết nối tương lai</a>
+        <a href="#vf9" class="menu-link">🚙 VF9 – Bản lĩnh dẫn đầu</a>
+        <a href="#mpv7" class="menu-link">🚐 MPV7, Limo – Rộng rãi</a>
+        <a href="#ecvan" class="menu-link">🚚 EC Van – Vận chuyển</a>
+        <a href="#vfwild" class="menu-link">🚙 VF Wild – Bán tải</a>
+      </div>
+
+      <!-- CHÂN MENU ZALO -->
+      <div class="sidebar-footer">
+        <a href="https://zalo.me/0797868434" target="_blank" class="hotline-btn">💬 Zalo: 0797.868.434</a>
+      </div>
+    </div>
+
+    <!-- KHỐI NỘI DUNG CHÍNH -->
+    <div class="main-area">
+      
+      <!-- TẦNG 1: BANNER FULL HÌNH ẢNH ĐỘC LẬP (PC & MOBILE) -->
+      <div class="banner-container">
+        <!-- Ảnh Desktop -->
+        <img src="https://w.ladicdn.com/5d9a96b88c0aa631d811d695/len-doi-xe-dien-giua-pho-hien-dai-20261029025733-pvogp.png" alt="Banner Desktop" class="banner-pc">
+        <!-- Ảnh Mobile -->
+        <img src="https://w.ladicdn.com/5d9a96b88c0aa631d811d695/len-doi-xe-dien-chon-vinfast-20261029025733-5m8uy.png" alt="Banner Mobile" class="banner-mobile">
+      </div>
+
+      <!-- TẦNG 2: 2 Ô LỚN -->
+      <div>
+        <div class="section-heading">Công cụ mua xe thông minh</div>
+        <div class="two-col-grid">
+          
+          <div class="big-card">
+            <div>
+              <span class="card-title">Dự toán lăn bánh &amp; Trả góp</span>
+              <p class="card-desc">Đối chiếu ngân sách hiện tại với dòng xe mục tiêu, tính chi tiết chi phí ra biển số và số tiền góp từng tháng.</p>
+            </div>
+            <div class="card-bottom-row">
+              <a href="#tinh-gia" class="pill-button">Xem chi tiết →</a>
+              <span class="decor-icon">☍</span>
+            </div>
+          </div>
+
+         <div class="big-card">
+            <div>
+              <span class="card-title">Phụ kiện &amp; Bảo hiểm</span>
+              <p class="card-desc">Khám phá các gói phụ kiện chính hãng, thiết bị tiện ích và bảo hiểm xe tốt nhất dành riêng cho bạn.</p>
+            </div>
+            <div class="card-bottom-row">
+              <a href="#phu-kien" class="pill-button">Xem chi tiết →</a>
+              <span class="decor-icon" style="font-size: 38px !important;">🛡️</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TẦNG 3: 3 Ô NHỎ -->
+      <div>
+        <div class="section-heading">Chương trình &amp; Dịch vụ</div>
+        <div class="three-col-grid">
+          
+          <div class="small-card">
+            <div>
+              <div class="small-card-header">
+                <span class="small-card-title">Chương trình khuyến mãi</span>
+                <span class="small-icon">🎁</span>
+              </div>
+              <p class="card-desc">Cập nhật bảng giá, ưu đãi đặc quyền và các chính sách giảm giá mới nhất trong tháng.</p>
+            </div>
+            <a href="#khuyen-mai" class="text-link">Xem ưu đãi →</a>
+          </div>
+
+          <div class="small-card">
+            <div>
+              <div class="small-card-header">
+                <span class="small-card-title">Đăng ký lái thử</span>
+                <span class="small-icon">🔑</span>
+              </div>
+              <p class="card-desc">Trải nghiệm thực tế cảm giác lái xe điện êm ái. Hỗ trợ mang xe tận nơi miễn phí phục vụ bạn.</p>
+            </div>
+            <a href="#lai-thu" class="text-link">Đặt lịch ngay →</a>
+          </div>
+
+          <div class="small-card">
+            <div>
+              <div class="small-card-header">
+                <span class="small-card-title">Thuê xe trải nghiệm</span>
+                <span class="small-icon">🚙</span>
+              </div>
+              <p class="card-desc">Dịch vụ cho thuê xe điện tự lái ngắn hạn và dài hạn thủ tục nhanh gọn, giao xe ngay.</p>
+            </div>
+            <a href="#thue-xe" class="text-link">Khám phá ngay →</a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NÚT NỔI GÓC DƯỚI PHẢI -->
+  <a href="#bao-gia" class="floating-btn">
+    <span>📋</span> Báo giá
+  </a>
+
+  <script>
+    function toggleMobileMenu() {
+      var sidebar = document.getElementById('sidebarMenu');
+      var overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    }
+  </script>
+  <script src="/ladihtml.sdk.min.js" data-ldp-runtime=""></script>
+
+</body></html>

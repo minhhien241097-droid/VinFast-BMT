@@ -1,0 +1,6 @@
+{
+  "name": "VinFast Auto - Cổng Tư Vấn Xe Điện",
+  "description": "Cổng thông tin & tư vấn xe điện VinFast chính hãng: Bảng giá, dự toán lăn bánh, trả góp ngân hàng, đăng ký lái thử và ưu đãi mới nhất.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
