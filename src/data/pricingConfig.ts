@@ -179,9 +179,11 @@ export const CAR_COLORS_CONFIG: Record<string, CarColorOption[]> = {
 };
 
 // Tính toán ưu đãi chiết khấu tự động:
-// - Mặc định: tự động áp dụng Vì tương lai xanh 2 (Khách hàng bình thường)
-// - Khách hàng chọn Công an / Quân đội: chỉ áp dụng tỷ lệ Công an/Quân đội (không cộng dồn Vì tương lai xanh 2)
-// - Khách hàng chọn Voucher VinFast: áp dụng cộng dồn (Vì tương lai xanh 2 + Giá trị Voucher)
+// Khách hàng chỉ được áp dụng 1 trong 3 ưu đãi:
+// 1. Khách hàng Công an / Quân đội
+// 2. Khách hàng có Voucher VinFast (Fadil / Lux A / Lux SA)
+// 3. Khách hàng bình thường (Mặc định)
+// Nếu chọn 1 trong 2 ưu đãi bổ sung (Công an hoặc Voucher) thì chỉ áp dụng ưu đãi vừa chọn (không cộng dồn).
 export const calculatePromotionDiscount = (
   carId: string,
   msrp: number,
@@ -189,21 +191,7 @@ export const calculatePromotionDiscount = (
 ): { discountAmount: number; policyTitle: string } => {
   const normId = carId.toLowerCase();
 
-  // Tỷ lệ ưu đãi của Vì Tương Lai Xanh 2
-  let greenFutureRate = 0.09;
-  if (normId === 'vf2' || normId === 'vf3' || normId === 'miniogreen') {
-    greenFutureRate = 0.03;
-  } else if (
-    normId === 'vf9' ||
-    normId === 'vf8_thm' ||
-    normId === 'ecvan' ||
-    normId === 'vfwild'
-  ) {
-    greenFutureRate = 0.05;
-  }
-  const greenFutureDiscount = Math.round(msrp * greenFutureRate);
-
-  // 1. Trường hợp: Khách hàng Công an / Quân đội (Không cộng dồn Vì tương lai xanh 2)
+  // 1. Trường hợp: Khách hàng Công an / Quân đội
   if (selectedPromo === 'military') {
     let militaryRate = 0.09;
     if (normId === 'vf2' || normId === 'vf3' || normId === 'miniogreen') {
@@ -219,34 +207,47 @@ export const calculatePromotionDiscount = (
     const militaryDiscount = Math.round(msrp * militaryRate);
     return {
       discountAmount: militaryDiscount,
-      policyTitle: 'Chính sách khách hàng công an, quân đội'
+      policyTitle: 'Ưu đãi Công an / Quân đội'
     };
   }
 
-  // 2. Trường hợp: Khách hàng có Voucher VinFast (Áp dụng cộng dồn chung với Vì tương lai xanh 2)
+  // 2. Trường hợp: Khách hàng có Voucher VinFast (Chỉ áp dụng mức giảm của Voucher, không cộng dồn)
   if (selectedPromo === 'voucher_fadil') {
     return {
-      discountAmount: greenFutureDiscount + 30000000,
-      policyTitle: 'Chính sách khách hàng có voucher'
+      discountAmount: 30000000,
+      policyTitle: 'Ưu đãi Voucher Fadil (-30 triệu)'
     };
   }
   if (selectedPromo === 'voucher_lux_a') {
     return {
-      discountAmount: greenFutureDiscount + 60000000,
-      policyTitle: 'Chính sách khách hàng có voucher'
+      discountAmount: 60000000,
+      policyTitle: 'Ưu đãi Voucher Lux A (-60 triệu)'
     };
   }
   if (selectedPromo === 'voucher_lux_sa') {
     return {
-      discountAmount: greenFutureDiscount + 80000000,
-      policyTitle: 'Chính sách khách hàng có voucher'
+      discountAmount: 80000000,
+      policyTitle: 'Ưu đãi Voucher Lux SA (-80 triệu)'
     };
   }
 
-  // 3. Trường hợp: Khách hàng bình thường (Mặc định tự động áp dụng Vì tương lai xanh 2)
+  // 3. Trường hợp: Khách hàng bình thường (Mặc định)
+  let normalRate = 0.09;
+  if (normId === 'vf2' || normId === 'vf3' || normId === 'miniogreen') {
+    normalRate = 0.03;
+  } else if (
+    normId === 'vf9' ||
+    normId === 'vf8_thm' ||
+    normId === 'ecvan' ||
+    normId === 'vfwild'
+  ) {
+    normalRate = 0.05;
+  }
+  const normalDiscount = Math.round(msrp * normalRate);
+
   return {
-    discountAmount: greenFutureDiscount,
-    policyTitle: 'Khách hàng bình thường'
+    discountAmount: normalDiscount,
+    policyTitle: 'Ưu đãi từ VinFast'
   };
 };
 
@@ -255,7 +256,7 @@ export const calculateRollingCosts = (_msrp?: number): RollingCostsBreakdown => 
   const registrationTax = 0; // Miễn phí
   const plateFee = 200000; // 200.000 VNĐ
   const roadFee = 1560000; // 1.560.000 VNĐ
-  const inspectionFee = 90000; // 90.000 VNĐ
+  const inspectionFee = 100000; // 100.000 VNĐ
   const civilInsurance = 531000; // 531.000 VNĐ
 
   const totalRollingCosts =

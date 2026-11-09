@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { DEALERSHIP_INFO } from '../data/cars';
 import { Bot, Sparkles, X } from 'lucide-react';
 
 interface FloatingActionsProps {
-  onOpenQuote: () => void;
   onToggleAiAdvisor: () => void;
   isAiAdvisorOpen: boolean;
 }
 
 export const FloatingActions: React.FC<FloatingActionsProps> = ({
-  onOpenQuote,
   onToggleAiAdvisor,
   isAiAdvisorOpen
 }) => {
@@ -94,18 +91,6 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
         <span>Trợ lý AI 24/7</span>
         <Sparkles size={13} className="text-amber-300" />
       </button>
-
-      {/* Quick Zalo button */}
-      <a
-        href={DEALERSHIP_INFO.zaloUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hidden sm:flex items-center gap-2 bg-[#0068FF] hover:bg-[#0055D4] text-white px-3.5 py-2 rounded-full text-xs font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
-        title="Nhắn Zalo tư vấn viên"
-      >
-        <span className="text-sm">💬</span>
-        <span>Zalo Tư Vấn</span>
-      </a>
     </div>
   );
 };

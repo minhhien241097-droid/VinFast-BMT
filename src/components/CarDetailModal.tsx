@@ -9,26 +9,19 @@ import {
   Users,
   ShieldCheck,
   Calculator,
-  CalendarCheck,
-  Send,
-  Check,
-  Car
+  Check
 } from 'lucide-react';
 
 interface CarDetailModalProps {
   car: CarModel | null;
   onClose: () => void;
   onOpenCalculator: (car: CarModel) => void;
-  onOpenTestDrive: (car: CarModel) => void;
-  onOpenQuote: (car: CarModel) => void;
 }
 
 export const CarDetailModal: React.FC<CarDetailModalProps> = ({
   car,
   onClose,
-  onOpenCalculator,
-  onOpenTestDrive,
-  onOpenQuote
+  onOpenCalculator
 }) => {
   if (!car) return null;
 
@@ -327,42 +320,23 @@ export const CarDetailModal: React.FC<CarDetailModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => {
-                onOpenCalculator(car);
-                onClose();
-              }}
-              className="px-4 py-2.5 rounded-xl border border-[#2563EB] text-[#1464F4] hover:bg-blue-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <Calculator size={14} />
-              <span>Tính lăn bánh</span>
-            </button>
-            <button
-              onClick={() => {
-                onOpenTestDrive(car);
-                onClose();
-              }}
-              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <CalendarCheck size={14} />
-              <span>Lái thử xe</span>
-            </button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => {
-                onOpenQuote(car);
-                onClose();
-              }}
-              className="w-full sm:w-auto px-6 py-2.5 bg-[#1464F4] hover:bg-blue-600 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Send size={15} />
-              <span>Yêu Cầu Báo Giá & Ưu Đãi Đại Lý</span>
-            </button>
-          </div>
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <button
+            onClick={() => {
+              onOpenCalculator(car);
+              onClose();
+            }}
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#1464F4] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Calculator size={14} />
+            <span>Dự toán lăn bánh & Trả góp</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer"
+          >
+            Đóng
+          </button>
         </div>
 
       </div>

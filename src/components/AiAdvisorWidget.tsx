@@ -1,23 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { VINFAST_CARS, DEALERSHIP_INFO } from '../data/cars';
 import { CarModel } from '../types';
-import { submitLead } from '../services/leadService';
 import {
   Bot,
   X,
   Send,
   Sparkles,
   Calculator,
-  Car,
-  Phone,
-  MessageSquare,
   RotateCcw,
-  ChevronRight,
-  CheckCircle2,
-  ShieldCheck,
-  Zap,
-  Gift,
-  Scale
+  ShieldCheck
 } from 'lucide-react';
 
 interface AiAdvisorWidgetProps {
@@ -25,9 +16,6 @@ interface AiAdvisorWidgetProps {
   onToggle: () => void;
   onSelectCarDetail: (car: CarModel) => void;
   onOpenCalculatorForCar: (car: CarModel) => void;
-  onOpenTestDriveForCar: (car: CarModel) => void;
-  onOpenQuoteForCar: (car: CarModel) => void;
-  onShowToast: (msg: string) => void;
 }
 
 interface QuickReply {
@@ -48,8 +36,6 @@ interface ChatMessage {
   cars?: CarModel[];
   comparison?: ComparisonData;
   quickReplies?: QuickReply[];
-  showLeadForm?: boolean;
-  preselectedCarName?: string;
 }
 
 const DEFAULT_QUICK_REPLIES: QuickReply[] = [
@@ -57,8 +43,7 @@ const DEFAULT_QUICK_REPLIES: QuickReply[] = [
   { label: '🚗 Chọn xe theo nhu cầu', action: 'PROMPT_NEED' },
   { label: '🏦 Tính trả góp & Trả trước', action: 'PROMPT_INSTALLMENT' },
   { label: '⚖️ So sánh 2 dòng xe', action: 'PROMPT_COMPARE' },
-  { label: '🎁 Ưu đãi & Bảo hành', action: 'PROMPT_PROMO' },
-  { label: '📅 Đăng ký lái thử tận nhà', action: 'PROMPT_TEST_DRIVE' }
+  { label: '🎁 Chương trình ưu đãi', action: 'PROMPT_PROMO' }
 ];
 
 const formatCurrency = (val: number) => {
@@ -85,10 +70,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
   isOpen,
   onToggle,
   onSelectCarDetail,
-  onOpenCalculatorForCar,
-  onOpenTestDriveForCar,
-  onOpenQuoteForCar,
-  onShowToast
+  onOpenCalculatorForCar
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -102,13 +84,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-
-  // Mini inline lead form states
-  const [leadName, setLeadName] = useState('');
-  const [leadPhone, setLeadPhone] = useState('');
-  const [leadCar, setLeadCar] = useState('VinFast VF 3');
-  const [leadSubmittedIds, setLeadSubmittedIds] = useState<Record<string, boolean>>({});
-  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -151,7 +126,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
 
   const buildCarLoanSummary = (car: CarModel): string => {
     const downPayment20 = Math.round(car.price * 0.2);
-    const regPlateEstimate = 2381000; // Phí biển số + đường bộ + đăng kiểm + BH TNDS bắt buộc tại tỉnh
+    const regPlateEstimate = 2391000; // Phí biển số + đường bộ + đăng kiểm (100k) + BH TNDS bắt buộc tại tỉnh
     const totalUpfront = downPayment20 + regPlateEstimate;
     return (
       `📌 **Dự toán trả góp ${car.name}** (Miễn 100% lệ phí trước bạ):\n` +
@@ -166,31 +141,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
   const generateBotReply = (userText: string, actionCode?: string): Omit<ChatMessage, 'id' | 'sender' | 'timestamp'> => {
     const q = normalizeVi(userText);
 
-    // 1. Check if user typed a phone number directly in chat
-    const phoneMatch = userText.replace(/[\s.-]/g, '').match(/(0[35789]\d{8})/);
-    if (phoneMatch && !actionCode) {
-      const detectedPhone = phoneMatch[1];
-      const mentioned = findMentionedCars(userText);
-      const carLabel = mentioned.length > 0 ? mentioned[0].name : 'Tư vấn qua Trợ lý AI';
-
-      submitLead({
-        type: 'quote',
-        typeName: 'Khách để lại SĐT trên Chat AI',
-        fullName: 'Khách hàng Chat AI',
-        phone: detectedPhone,
-        carName: carLabel,
-        note: `Tin nhắn khách gửi: "${userText}"`
-      });
-
-      onShowToast(`Đã ghi nhận SĐT ${detectedPhone}! Chuyên viên sẽ liên hệ ngay.`);
-
-      return {
-        text: `Dạ em đã ghi nhận số điện thoại **${detectedPhone}** của anh/chị vào hệ thống ưu tiên của **${DEALERSHIP_INFO.showroomName}**! 🎉\n\nChuyên viên tư vấn sẽ liên hệ hoặc nhắn Zalo gửi bảng tính lăn bánh chi tiết trong ít phút nữa. Nếu cần gấp, anh/chị có thể bấm gọi trực tiếp Hotline **${DEALERSHIP_INFO.hotline}** nhé!`,
-        quickReplies: DEFAULT_QUICK_REPLIES
-      };
-    }
-
-    // 2. Handle structured Quick Actions
+    // 1. Handle structured Quick Actions
     if (actionCode === 'PROMPT_BUDGET') {
       return {
         text: 'Dạ anh/chị đang dự kiến tầm tài chính mua xe (hoặc số tiền trả trước) khoảng bao nhiêu để em lọc mẫu xe phù hợp nhất ạ?',
@@ -212,7 +163,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         quickReplies: [
           { label: '⚖️ So sánh VF 3 và VF 2', action: 'COMPARE_vf3_vf2' },
           { label: '🏦 Tính trả góp VF 3', action: 'LOAN_vf3' },
-          { label: '📩 Nhận báo giá qua Zalo', action: 'OPEN_LEAD_FORM' },
           { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
@@ -227,7 +177,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
           { label: '⚖️ So sánh VF 5 và VF 6', action: 'COMPARE_vf5_vf6' },
           { label: '🏦 Tính trả góp VF 5', action: 'LOAN_vf5' },
           { label: '🏦 Tính trả góp VF 6', action: 'LOAN_vf6' },
-          { label: '📩 Nhận báo giá qua Zalo', action: 'OPEN_LEAD_FORM' }
+          { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
     }
@@ -241,7 +191,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
           { label: '⚖️ So sánh VF 7 và VF 8', action: 'COMPARE_vf7_vf8' },
           { label: '⚖️ So sánh VF 8 và VF Wild', action: 'COMPARE_vf8_vfwild' },
           { label: '🏦 Tính trả góp VF 8', action: 'LOAN_vf8' },
-          { label: '📩 Nhận báo giá qua Zalo', action: 'OPEN_LEAD_FORM' }
+          { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
     }
@@ -253,7 +203,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         cars,
         quickReplies: [
           { label: '🏦 Tính trả góp VF 9', action: 'LOAN_vf9' },
-          { label: '📅 Đặt lịch lái thử VIP', action: 'PROMPT_TEST_DRIVE' },
           { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
@@ -301,7 +250,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         cars,
         quickReplies: [
           { label: '⚖️ So sánh Limo Green và VF 9', action: 'COMPARE_limogreen_vf9' },
-          { label: '📩 Nhận báo giá lăn bánh', action: 'OPEN_LEAD_FORM' },
           { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
@@ -314,7 +262,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         cars: wild ? [wild] : [],
         quickReplies: [
           { label: '🏦 Dự toán trả góp VF Wild', action: 'LOAN_vfwild' },
-          { label: '📩 Đặt chỗ nhận ưu đãi sớm', action: 'OPEN_LEAD_FORM' },
           { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
       };
@@ -352,7 +299,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
           text: buildCarLoanSummary(car),
           cars: [car],
           quickReplies: [
-            { label: '📩 Gửi bảng tính chi tiết qua Zalo', action: 'OPEN_LEAD_FORM' },
             { label: '🏦 Xem trả góp mẫu xe khác', action: 'PROMPT_INSTALLMENT' },
             { label: '🔙 Menu chính', action: 'MAIN_MENU' }
           ]
@@ -384,7 +330,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
           comparison: { carA, carB },
           quickReplies: [
             { label: '⚖️ So sánh cặp xe khác', action: 'PROMPT_COMPARE' },
-            { label: '📩 Nhận báo giá lăn bánh', action: 'OPEN_LEAD_FORM' },
             { label: '🔙 Menu chính', action: 'MAIN_MENU' }
           ]
         };
@@ -394,22 +339,17 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     if (actionCode === 'PROMPT_PROMO') {
       return {
         text:
-          `🎁 **Chính sách & Ưu đãi đặc quyền tại ${DEALERSHIP_INFO.showroomName} (Đại lý 3S):**\n\n` +
-          `✅ **Miễn 100% lệ phí trước bạ** theo chính sách nhà nước cho ô tô điện (tiết kiệm từ 20 đến hơn 150 triệu đồng).\n` +
-          `✅ **Ưu đãi sạc pin** tại hệ thống trạm sạc V-GREEN phủ rộng 63 tỉnh thành.\n` +
-          `✅ **Bảo hành chính hãng dài nhất thị trường:** Bảo hành xe lên tới 7 – 10 năm, cứu hộ 24/7 miễn phí.\n` +
-          `✅ **Hỗ trợ vay ngân hàng tới 80%**, lãi suất ưu đãi, bao hồ sơ tỉnh.\n` +
-          `✅ **Lái thử tận nhà & Giao xe tận nơi** tại Bình Phước, Đồng Nai và các tỉnh lân cận.\n\n` +
-          `Anh/chị để lại SĐT bên dưới để nhận báo giá lăn bánh kèm quà tặng phụ kiện mới nhất trong tháng nhé!`,
-        showLeadForm: true,
-        quickReplies: DEFAULT_QUICK_REPLIES
-      };
-    }
-
-    if (actionCode === 'PROMPT_TEST_DRIVE' || actionCode === 'OPEN_LEAD_FORM') {
-      return {
-        text: `Dạ anh/chị điền nhanh **Họ tên + Số điện thoại** vào khung bên dưới, chuyên viên **${DEALERSHIP_INFO.showroomName}** sẽ gửi ngay bảng tính lăn bánh qua Zalo hoặc sắp xếp mang xe đến tận nhà để anh/chị lái thử miễn phí ạ:`,
-        showLeadForm: true,
+          `🎁 **Chương trình Ưu đãi Khách hàng tại ${DEALERSHIP_INFO.showroomName} (Đại lý 3S):**\n\n` +
+          `🔥 **1. Chương trình "Mãnh liệt Tinh thần Việt Nam 2" (Mãnh liệt Tương lai Xanh 2):**\n` +
+          `• Áp dụng cho **Khách hàng thông thường** (giảm 3% – 9% giá xe) và **Khách hàng Công an / Quân đội** (giảm 6% – 9% giá xe).\n` +
+          `• *Lưu ý: Chương trình diễn ra trong thời gian ngắn.*\n\n` +
+          `🎫 **2. Ưu đãi giảm giá cho khách hàng có Voucher (Sở hữu xe xăng VinFast):**\n` +
+          `• Chủ xe **VinFast Fadil:** Tặng Voucher giảm **30.000.000đ**\n` +
+          `• Chủ xe **VinFast Lux A:** Tặng Voucher giảm **60.000.000đ**\n` +
+          `• Chủ xe **VinFast Lux SA:** Tặng Voucher giảm **80.000.000đ**\n` +
+          `*(Không áp dụng đồng thời với các chương trình khác)*.\n\n` +
+          `✅ **3. Miễn 100% lệ phí trước bạ** theo chính sách Nhà nước cho ô tô điện.\n\n` +
+          `🏦 **4. Hỗ trợ vay ngân hàng:** Vay lên tới 80% – 85% giá trị xe trong tối đa 8 năm với lãi suất ưu đãi.`,
         quickReplies: DEFAULT_QUICK_REPLIES
       };
     }
@@ -424,75 +364,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     // 3. Free-text Natural Language Understanding (NLP)
     const mentionedCars = findMentionedCars(userText);
 
-    // 3a. Check if user is asking for a discount / bargaining / special policy / hard question
-    const isBargainingOrSpecialPolicy =
-      q.includes('giam gia') ||
-      q.includes('giam them') ||
-      q.includes('bot gia') ||
-      q.includes('bot khong') ||
-      q.includes('bot duoc') ||
-      q.includes('bot them') ||
-      q.includes('chiet khau') ||
-      q.includes('gia net') ||
-      q.includes('gia tot nhat') ||
-      q.includes('thuong luong') ||
-      q.includes('dat qua') ||
-      q.includes('mac qua') ||
-      q.includes('thu cu') ||
-      q.includes('doi moi') ||
-      q.includes('no xau') ||
-      q.includes('no chu y') ||
-      q.includes('ton kho') ||
-      q.includes('co san xe') ||
-      q.includes('giao ngay');
-
-    if (isBargainingOrSpecialPolicy) {
-      const targetCar = mentionedCars.length > 0 ? mentionedCars[0] : undefined;
-      return {
-        text:
-          `Dạ về mức xin giảm giá thêm, chiết khấu tiền mặt hoặc chính sách hỗ trợ riêng này hiện tại em chưa nắm được dữ liệu trên hệ thống tự động ạ (do mức ưu đãi kịch sàn cần Quản lý Đại lý phê duyệt trực tiếp theo từng thời điểm lấy xe). 🙏\n\n` +
-          `Anh/chị vui lòng để lại **Tên và Số điện thoại** ngay bên dưới nha, chuyên viên bán hàng của **${DEALERSHIP_INFO.showroomName}** sẽ liên hệ lại ngay để báo mức giá tốt nhất và giải đáp chi tiết cho anh/chị ạ!`,
-        cars: targetCar ? [targetCar] : undefined,
-        showLeadForm: true,
-        preselectedCarName: targetCar?.name,
-        quickReplies: DEFAULT_QUICK_REPLIES
-      };
-    }
-
-    // 3b. Check if user is asking about deep/unlisted features or complex technical questions
-    const isDeepUnknownQuestion =
-      q.includes('camera hanh trinh') ||
-      q.includes('phuoc') ||
-      q.includes('he thong treo') ||
-      q.includes('am thanh') ||
-      q.includes('may loa') ||
-      q.includes('dan phim') ||
-      q.includes('phu gam') ||
-      q.includes('do xe') ||
-      q.includes('loi ') ||
-      q.includes('hay hong') ||
-      q.includes('bao duong') ||
-      q.includes('thay pin') ||
-      q.includes('thue pin') ||
-      q.includes('phu tung') ||
-      q.includes('hop tac xa') ||
-      q.includes('bien vang') ||
-      q.includes('ap suat lop') ||
-      q.includes('phan mem');
-
-    if (isDeepUnknownQuestion) {
-      const targetCar = mentionedCars.length > 0 ? mentionedCars[0] : undefined;
-      return {
-        text:
-          `Dạ về thông tin chuyên sâu này hiện tại em chưa có dữ liệu chi tiết trên hệ thống nên chưa dám trả lời chính xác ngay cho anh/chị ạ. 🙏\n\n` +
-          `Anh/chị vui lòng để lại **Tên và Số điện thoại** ở khung bên dưới giúp em nhé, chuyên viên bán hàng của **${DEALERSHIP_INFO.showroomName}** nắm rõ thực tế xe sẽ liên hệ lại giải đáp tường tận cho anh/chị ngay ạ!`,
-        cars: targetCar ? [targetCar] : undefined,
-        showLeadForm: true,
-        preselectedCarName: targetCar?.name,
-        quickReplies: DEFAULT_QUICK_REPLIES
-      };
-    }
-
     // If user mentions 2 cars -> Auto Compare!
     if (mentionedCars.length >= 2) {
       return {
@@ -500,8 +371,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         comparison: { carA: mentionedCars[0], carB: mentionedCars[1] },
         quickReplies: [
           { label: `🏦 Tính trả góp ${mentionedCars[0].name}`, action: `LOAN_${mentionedCars[0].id}` },
-          { label: `🏦 Tính trả góp ${mentionedCars[1].name}`, action: `LOAN_${mentionedCars[1].id}` },
-          { label: '📩 Nhận báo giá 2 xe qua Zalo', action: 'OPEN_LEAD_FORM' }
+          { label: `🏦 Tính trả góp ${mentionedCars[1].name}`, action: `LOAN_${mentionedCars[1].id}` }
         ]
       };
     }
@@ -521,8 +391,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         return {
           text: buildCarLoanSummary(car),
           cars: [car],
-          showLeadForm: true,
-          preselectedCarName: car.name,
           quickReplies: DEFAULT_QUICK_REPLIES
         };
       }
@@ -543,7 +411,6 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         cars: [car],
         quickReplies: [
           { label: `🏦 Tính trả góp ${car.name}`, action: `LOAN_${car.id}` },
-          { label: '📩 Nhận báo giá lăn bánh Zalo', action: 'OPEN_LEAD_FORM' },
           { label: '⚖️ So sánh với xe khác', action: 'PROMPT_COMPARE' },
           { label: '🔙 Menu chính', action: 'MAIN_MENU' }
         ]
@@ -586,7 +453,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       return generateBotReply(userText, 'PROMPT_COMPARE');
     }
 
-    if (q.includes('khuyen mai') || q.includes('uu dai') || q.includes('truoc ba') || q.includes('qua tang')) {
+    if (q.includes('khuyen mai') || q.includes('uu dai') || q.includes('truoc ba') || q.includes('qua tang') || q.includes('voucher') || q.includes('manh liet')) {
       return generateBotReply(userText, 'PROMPT_PROMO');
     }
 
@@ -594,11 +461,10 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       return {
         text:
           `📍 **Hệ thống Showroom ${DEALERSHIP_INFO.showroomName} (Đại lý ${DEALERSHIP_INFO.tier}):**\n` +
-          `• **CN Đồng Xoài:** 525 Phú Riềng Đỏ, P. Bình Phước, TP. Đồng Nai (Bình Phước).\n` +
-          `• **CN Đồng Phú:** KCN Bắc Đồng Phú, P. Đồng Phú, TP. Đồng Nai (Bình Phước).\n` +
-          `• **Hotline / Zalo 24/7:** **${DEALERSHIP_INFO.hotline}**\n\n` +
-          `Đặc biệt, đại lý có dịch vụ **mang xe đến tận nhà cho khách hàng lái thử miễn phí**. Anh/chị để lại thông tin bên dưới để em xếp lịch xe nhé!`,
-        showLeadForm: true,
+          `• **VinFast Bình Phước:** Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP. Đồng Nai.\n` +
+          `• **CN Đồng Xoài:** 525 Phú Riềng Đỏ, P. Bình Phước, TP. Đồng Nai.\n` +
+          `• **CN Phước Long:** KP Bình Giang, P. Phước Long, TP. Đồng Nai.\n` +
+          `• **CN Bình Long:** Đường Nguyễn Huệ, P. Bình Long, TP. Đồng Nai.`,
         quickReplies: DEFAULT_QUICK_REPLIES
       };
     }
@@ -622,12 +488,10 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       };
     }
 
-    // Default fallback for unknown / difficult questions -> Politely admit and ask for contact info & phone number
+    // Default fallback
     return {
       text:
-        `Dạ về câu hỏi/thông tin này hiện tại hệ thống tự động của em chưa có dữ liệu chi tiết nên em chưa giải đáp chính xác ngay cho anh/chị được ạ. 🙏\n\n` +
-        `Anh/chị vui lòng để lại **Tên và Số điện thoại** ở khung bên dưới nha, chuyên viên bán hàng của **${DEALERSHIP_INFO.showroomName}** sẽ liên hệ lại ngay để tư vấn và giải đáp cụ thể cho anh/chị nhé!`,
-      showLeadForm: true,
+        `Dạ em có thể hỗ trợ anh/chị tra cứu bảng giá niêm yết, dự toán chi phí lăn bánh, tính trả góp ngân hàng hoặc so sánh thông số kỹ thuật các dòng xe VinFast. Anh/chị bấm chọn các mục bên dưới nhé:`,
       quickReplies: DEFAULT_QUICK_REPLIES
     };
   };
@@ -643,14 +507,10 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
 
-    // Thời gian trả lời tự nhiên từ 3.2 giây đến 4.8 giây (3 - 5s)
-    const naturalDelayMs = Math.floor(Math.random() * 1600) + 3200;
+    const naturalDelayMs = Math.floor(Math.random() * 800) + 1200;
 
     setTimeout(() => {
       const replyData = generateBotReply(displayText, actionCode);
-      if (replyData.preselectedCarName) {
-        setLeadCar(replyData.preselectedCarName);
-      }
       const botMsg: ChatMessage = {
         id: 'bot-' + Date.now(),
         sender: 'bot',
@@ -662,8 +522,8 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     }, naturalDelayMs);
   };
 
-  const handleSendText = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendText = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const trimmed = inputValue.trim();
     if (!trimmed) return;
     setInputValue('');
@@ -682,33 +542,11 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     ]);
   };
 
-  const handleInlineLeadSubmit = async (e: React.FormEvent, msgId: string) => {
-    e.preventDefault();
-    const cleanPhone = leadPhone.replace(/[\s.-]/g, '');
-    if (!/^0\d{9}$/.test(cleanPhone)) {
-      onShowToast('Vui lòng nhập số điện thoại hợp lệ (10 chữ số).');
-      return;
-    }
-
-    setIsSubmittingLead(true);
-    await submitLead({
-      type: 'quote',
-      typeName: 'Báo giá qua Trợ lý AI',
-      fullName: leadName.trim() || 'Khách hàng Trợ lý AI',
-      phone: cleanPhone,
-      carName: leadCar,
-      note: 'Đăng ký trực tiếp từ hộp chat Trợ lý AI 24/7'
-    });
-    setIsSubmittingLead(false);
-    setLeadSubmittedIds((prev) => ({ ...prev, [msgId]: true }));
-    onShowToast(`Đã gửi yêu cầu tư vấn ${leadCar} thành công!`);
-  };
-
   const renderFormattedText = (text: string) => {
     return text.split('\n').map((line, i) => {
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={i} className={line.trim() === '' ? 'h-2' : 'leading-relaxed'}>
+        <p key={i} className={line.trim() === '' ? 'h-2' : 'leading-relaxed break-words'}>
           {parts.map((part, j) => {
             if (part.startsWith('**') && part.endsWith('**')) {
               return (
@@ -727,7 +565,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[410px] max-h-[82vh] h-[620px] bg-white rounded-[24px] shadow-[0_16px_48px_rgba(15,23,42,0.24)] border border-slate-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed bottom-3 inset-x-3 sm:inset-x-auto sm:bottom-6 sm:right-6 z-50 w-auto sm:w-[410px] max-w-full max-h-[80dvh] h-[560px] sm:h-[620px] bg-white rounded-[24px] shadow-[0_16px_48px_rgba(15,23,42,0.24)] border border-slate-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#1464F4] text-white px-4 py-3.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
@@ -770,42 +608,23 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
         </div>
       </div>
 
-      {/* Top Quick Bar: Direct Hotline & Zalo */}
+      {/* Top Quick Bar */}
       <div className="bg-slate-50 border-b border-slate-200/70 px-3.5 py-2 flex items-center justify-between text-[11px] shrink-0">
         <span className="text-slate-600 font-medium flex items-center gap-1">
           <ShieldCheck size={13} className="text-[#1464F4]" />
           Đại lý 3S Bình Phước
         </span>
-        <div className="flex items-center gap-2">
-          <a
-            href={DEALERSHIP_INFO.zaloUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#0068FF] hover:underline font-bold flex items-center gap-1"
-          >
-            <MessageSquare size={12} />
-            Chat Zalo
-          </a>
-          <span className="text-slate-300">|</span>
-          <a
-            href={`tel:${DEALERSHIP_INFO.hotline.replace(/\./g, '')}`}
-            className="text-emerald-600 hover:underline font-bold flex items-center gap-1"
-          >
-            <Phone size={12} />
-            {DEALERSHIP_INFO.hotline}
-          </a>
-        </div>
       </div>
 
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-4 bg-[#F8FAFC]">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 space-y-4 bg-[#F8FAFC]">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
           >
             <div
-              className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-[13px] shadow-2xs ${
+              className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-[13px] shadow-2xs break-words ${
                 msg.sender === 'user'
                   ? 'bg-[#1464F4] text-white rounded-br-xs'
                   : 'bg-white text-slate-700 border border-slate-200/80 rounded-bl-xs'
@@ -814,7 +633,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
               {msg.sender === 'bot' ? (
                 <div className="space-y-1">{renderFormattedText(msg.text)}</div>
               ) : (
-                <p className="leading-relaxed">{msg.text}</p>
+                <p className="leading-relaxed break-words">{msg.text}</p>
               )}
             </div>
 
@@ -850,7 +669,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
+                    <div className="grid grid-cols-2 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
                       <button
                         type="button"
                         onClick={() => onSelectCarDetail(car)}
@@ -864,14 +683,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
                         className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-[#1464F4] font-bold text-[11px] rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Calculator size={11} />
-                        Trả góp
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onOpenQuoteForCar(car)}
-                        className="py-1.5 px-2 bg-[#1464F4] hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
-                      >
-                        Báo giá
+                        Dự toán & Trả góp
                       </button>
                     </div>
                   </div>
@@ -934,73 +746,19 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
                 <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => onOpenQuoteForCar(msg.comparison!.carA)}
+                    onClick={() => onOpenCalculatorForCar(msg.comparison!.carA)}
                     className="py-1.5 bg-[#1464F4] text-white font-bold text-[11px] rounded-lg hover:bg-blue-700 cursor-pointer"
                   >
-                    Báo giá {msg.comparison.carA.name}
+                    Dự toán {msg.comparison.carA.name}
                   </button>
                   <button
                     type="button"
-                    onClick={() => onOpenQuoteForCar(msg.comparison!.carB)}
+                    onClick={() => onOpenCalculatorForCar(msg.comparison!.carB)}
                     className="py-1.5 bg-emerald-600 text-white font-bold text-[11px] rounded-lg hover:bg-emerald-700 cursor-pointer"
                   >
-                    Báo giá {msg.comparison.carB.name}
+                    Dự toán {msg.comparison.carB.name}
                   </button>
                 </div>
-              </div>
-            )}
-
-            {/* If message contains Inline Lead Form */}
-            {msg.showLeadForm && (
-              <div className="w-full mt-2.5 bg-white rounded-xl border border-blue-200 p-3 shadow-2xs">
-                {leadSubmittedIds[msg.id] ? (
-                  <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold py-2">
-                    <CheckCircle2 size={18} />
-                    <span>Đã gửi thông tin! Chuyên viên VinFast 3S sẽ liên hệ ngay.</span>
-                  </div>
-                ) : (
-                  <form onSubmit={(e) => handleInlineLeadSubmit(e, msg.id)} className="space-y-2">
-                    <div className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                      <Gift size={14} className="text-[#1464F4]" />
-                      <span>Nhận báo giá lăn bánh & Ưu đãi qua Zalo</span>
-                    </div>
-                    <select
-                      value={leadCar}
-                      onChange={(e) => setLeadCar(e.target.value)}
-                      className="w-full px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 focus:outline-hidden focus:border-[#1464F4]"
-                    >
-                      {VINFAST_CARS.map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name} - {formatCurrency(c.price)}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        placeholder="Tên anh/chị"
-                        value={leadName}
-                        onChange={(e) => setLeadName(e.target.value)}
-                        className="px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#1464F4]"
-                      />
-                      <input
-                        type="tel"
-                        required
-                        placeholder="Số điện thoại *"
-                        value={leadPhone}
-                        onChange={(e) => setLeadPhone(e.target.value)}
-                        className="px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#1464F4]"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isSubmittingLead}
-                      className="w-full py-2 bg-[#1464F4] hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer"
-                    >
-                      {isSubmittingLead ? 'Đang gửi...' : 'Gửi yêu cầu nhận báo giá ngay'}
-                    </button>
-                  </form>
-                )}
               </div>
             )}
 
@@ -1052,10 +810,17 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       >
         <input
           type="text"
+          enterKeyHint="send"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Nhập tên xe, tầm tiền hoặc SĐT của bạn..."
-          className="flex-1 bg-slate-100 hover:bg-slate-200/70 focus:bg-white text-xs sm:text-[13px] text-slate-800 px-3.5 py-2.5 rounded-full border border-transparent focus:border-[#1464F4] focus:outline-hidden transition-all"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              handleSendText();
+            }
+          }}
+          placeholder="Nhập tên xe hoặc tầm tiền của bạn..."
+          className="flex-1 min-w-0 bg-slate-100 hover:bg-slate-200/70 focus:bg-white text-[16px] sm:text-[13px] text-slate-800 px-3.5 py-2.5 rounded-full border border-transparent focus:border-[#1464F4] focus:outline-hidden transition-all"
         />
         <button
           type="submit"

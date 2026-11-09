@@ -2,19 +2,17 @@ import React, { useState } from 'react';
 import { VINFAST_CARS } from '../data/cars';
 import { CarModel } from '../types';
 import { formatMillionVND, formatNumber, getColorBackgroundStyle } from '../utils/formatters';
-import { Zap, BatteryCharging, Gauge, Users, ChevronRight, Calculator, CalendarCheck, CheckCircle2 } from 'lucide-react';
+import { Zap, ChevronRight, Calculator } from 'lucide-react';
 
 interface CarCatalogProps {
   onSelectCarDetail: (car: CarModel) => void;
   onOpenCalculatorForCar: (car: CarModel) => void;
-  onOpenTestDriveForCar: (car: CarModel) => void;
   highlightedCarId?: string | null;
 }
 
 export const CarCatalog: React.FC<CarCatalogProps> = ({
   onSelectCarDetail,
   onOpenCalculatorForCar,
-  onOpenTestDriveForCar,
   highlightedCarId
 }) => {
   const [filter, setFilter] = useState<string | null>(null);
@@ -220,29 +218,19 @@ export const CarCatalog: React.FC<CarCatalogProps> = ({
 
               {/* Action Buttons */}
               <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onOpenCalculatorForCar(car)}
-                    className="flex items-center justify-center gap-1 py-2 px-2 bg-blue-50 hover:bg-blue-100 text-[#1464F4] rounded-xl text-xs font-bold transition-colors"
-                  >
-                    <Calculator size={13} />
-                    <span>Dự toán lăn bánh</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOpenTestDriveForCar(car)}
-                    className="flex items-center justify-center gap-1 py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors"
-                  >
-                    <CalendarCheck size={13} />
-                    <span>Lái thử</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenCalculatorForCar(car)}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-[#1464F4] rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <Calculator size={14} />
+                  <span>Dự toán lăn bánh & Trả góp</span>
+                </button>
 
                 <button
                   type="button"
                   onClick={() => onSelectCarDetail(car)}
-                  className="w-full py-2 px-3 border border-slate-200 hover:border-[#1464F4] hover:text-[#1464F4] text-slate-700 rounded-xl text-xs font-bold transition-colors text-center"
+                  className="w-full py-2 px-3 border border-slate-200 hover:border-[#1464F4] hover:text-[#1464F4] text-slate-700 rounded-xl text-xs font-bold transition-colors text-center cursor-pointer"
                 >
                   Khám phá thông số & Màu xe →
                 </button>

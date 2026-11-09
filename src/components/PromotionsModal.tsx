@@ -1,18 +1,15 @@
 import React from 'react';
 import { PROMOTIONS_DATA } from '../data/promotions';
-import { DEALERSHIP_INFO } from '../data/cars';
-import { X, Gift, Check, Phone, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 
 interface PromotionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onClaimPromotion: (promoTitle: string) => void;
 }
 
 export const PromotionsModal: React.FC<PromotionsModalProps> = ({
   isOpen,
-  onClose,
-  onClaimPromotion
+  onClose
 }) => {
   if (!isOpen) return null;
 
@@ -31,7 +28,7 @@ export const PromotionsModal: React.FC<PromotionsModalProps> = ({
                 Chương Trình Khuyến Mãi & Đặc Quyền VinFast
               </h3>
               <p className="text-xs text-slate-500">
-                Áp dụng tại đại lý chính hãng {DEALERSHIP_INFO.showroomName}
+                Áp dụng tại đại lý chính hãng VinFast
               </p>
             </div>
           </div>
@@ -76,37 +73,20 @@ export const PromotionsModal: React.FC<PromotionsModalProps> = ({
                 <span className="text-slate-400 font-medium">
                   ⏳ {promo.validUntil}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClaimPromotion(promo.title);
-                    onClose();
-                  }}
-                  className="inline-flex items-center gap-1 font-bold text-[#1464F4] hover:text-blue-700 hover:underline"
-                >
-                  <span>Đăng ký nhận ưu đãi này</span>
-                  <ArrowRight size={13} />
-                </button>
               </div>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-600">
-            <Phone size={14} className="text-[#1464F4]" />
-            <span>Hotline tư vấn ưu đãi trực tiếp: <strong>{DEALERSHIP_INFO.hotline}</strong></span>
-          </div>
-
-          <a
-            href={DEALERSHIP_INFO.zaloUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#1464F4] hover:bg-blue-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all text-center"
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
           >
-            Nhắn Tin Zalo Để Nhận Thêm Ưu Đãi Tiền Mặt
-          </a>
+            Đóng
+          </button>
         </div>
 
       </div>

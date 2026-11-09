@@ -811,8 +811,10 @@ export const DEALERSHIP_INFO = {
   facebookName: 'VinFast Bình Phước',
   address: 'QL14, Phường Tân Phú, TP. Đồng Xoài, Tỉnh Bình Phước',
   branches: [
-    { name: 'CN Đồng Xoài', address: '525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai.' },
-    { name: 'CN Đồng Phú', address: 'KCN Bắc Đồng Phú, P Đồng Phú, TP Đồng Nai.' }
+    { name: 'VinFast Bình Phước', address: 'Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP Đồng Nai' },
+    { name: 'CN Đồng Xoài', address: '525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai' },
+    { name: 'CN Phước Long', address: 'KP Bình Giang, P. Phước Long, TP Đồng Nai' },
+    { name: 'CN Bình Long', address: 'Đường Nguyễn Huệ, P Bình Long, TP Đồng Nai' }
   ],
   avatarUrl: 'https://w.ladicdn.com/5d9a96b88c0aa631d811d695/thiet_ke_chua_co_ten-removebg-preview-20261029033424-lym7k.png',
   bannerPcUrl: 'https://w.ladicdn.com/5d9a96b88c0aa631d811d695/len-doi-xe-dien-giua-pho-hien-dai-20261029025733-pvogp.png',

@@ -24,14 +24,12 @@ interface LoanCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialCarId?: string;
-  onRequestQuoteWithCalculation: (car: CarModel, details: any) => void;
 }
 
 export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
   isOpen,
   onClose,
-  initialCarId,
-  onRequestQuoteWithCalculation
+  initialCarId
 }) => {
   const [selectedCarId, setSelectedCarId] = useState<string>(initialCarId || 'vf3');
   const [selectedVersionName, setSelectedVersionName] = useState<string>('');
@@ -236,9 +234,9 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
             </div>
           </div>
 
-          {/* 4. ƯU ĐÃI BỔ SUNG (CHỈ CÔNG AN / QUÂN ĐỘI VÀ VOUCHER VINFAST) */}
+          {/* 4. ƯU ĐÃI BỔ SUNG (CHỈ ÁP DỤNG 1 TRONG 3 CHÍNH SÁCH) */}
           <div className="p-3.5 bg-gradient-to-br from-amber-50/70 to-orange-50/40 border border-amber-200/80 rounded-2xl space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
                 <Gift size={14} className="text-amber-600" />
                 <span>4. Ưu đãi bổ sung</span>
@@ -293,7 +291,7 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
                     Khách hàng có Voucher VinFast
                   </span>
                   <span className="text-[11px] text-slate-500 block">
-                    Được cộng dồn ưu đãi giảm giá
+                    Áp dụng ưu đãi theo mệnh giá Voucher
                   </span>
                 </div>
               </label>
@@ -365,7 +363,7 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
                 <span>Giá niêm yết: <strong>{formatVND(msrpPrice)}</strong></span>
                 {colorExtraFee > 0 && <span>+ Phụ phí màu: <strong>{formatVND(colorExtraFee)}</strong></span>}
                 <span className="text-rose-600 font-extrabold">
-                  Ưu đãi từ đại lý VinFast: -{formatVND(discountAmount)}
+                  Ưu đãi từ VinFast: -{formatVND(discountAmount)}
                 </span>
               </div>
             </div>
@@ -459,6 +457,8 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
                     </span>
                     <span className="text-[11px] text-amber-700 font-semibold block">
                       * Giá trên chưa bao gồm gói quà tặng chính hãng từ VinFast đại lý
+                      <br />
+                      (có thể quy đổi trừ vào giá bán)
                     </span>
                   </div>
                   <span className="text-lg sm:text-xl font-black text-[#1464F4] tabular-nums self-end sm:self-auto">
@@ -524,7 +524,7 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
                     <span className="text-[#1464F4]">{interestRateYear}% / năm</span>
                   </div>
                   <div className="text-[11px] text-slate-500">
-                    VinFast liên kết với Vietcombank, BIDV, Techcombank, MB Bank hỗ trợ hồ sơ nhanh trong ngày.
+                    VinFast liên kết với các ngân hàng có chính sách tốt nhất, hỗ trợ hồ sơ nhanh trong ngày.
                   </div>
                 </div>
               </div>
@@ -554,27 +554,11 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
           )}
 
           {/* Action bottom button */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                onRequestQuoteWithCalculation(currentCar, {
-                  version: currentVersion ? currentVersion.name : currentCar.name,
-                  color: activeColorObj.name,
-                  promo: policyTitle,
-                  totalPrice: totalOnRoadPrice
-                });
-                onClose();
-              }}
-              className="flex-1 py-3 bg-[#1464F4] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <Send size={16} />
-              <span>Bấm Vào Đây Để Nhận Báo Giá & Gói Quà Tặng Thêm Từ Đại Lý</span>
-            </button>
+          <div className="pt-2 flex justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors"
+              className="px-6 py-2.5 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Đóng
             </button>

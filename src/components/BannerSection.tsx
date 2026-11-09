@@ -3,12 +3,10 @@ import { DEALERSHIP_INFO } from '../data/cars';
 import { Sparkles, ShieldCheck, Zap } from 'lucide-react';
 
 interface BannerSectionProps {
-  onOpenTestDrive: () => void;
   onOpenPromotions: () => void;
 }
 
 export const BannerSection: React.FC<BannerSectionProps> = ({
-  onOpenTestDrive,
   onOpenPromotions
 }) => {
   const [imgError, setImgError] = useState(false);
@@ -52,12 +50,6 @@ export const BannerSection: React.FC<BannerSectionProps> = ({
                 className="px-5 py-2.5 rounded-xl bg-white text-[#1464F4] font-extrabold text-xs sm:text-sm hover:bg-blue-50 shadow-md transition-all active:scale-95"
               >
                 Xem chi tiết ưu đãi
-              </button>
-              <button
-                onClick={onOpenTestDrive}
-                className="px-5 py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 border border-white/20 text-white font-bold text-xs sm:text-sm transition-all"
-              >
-                Đăng ký lái thử miễn phí
               </button>
             </div>
           </div>
