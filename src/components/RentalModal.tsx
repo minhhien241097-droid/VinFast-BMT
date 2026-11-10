@@ -1,15 +1,32 @@
 import React, { useState } from 'react';
-import { DEALERSHIP_INFO } from '../data/cars';
+import { DEALERSHIP_INFO, DealershipConfig } from '../data/cars';
 import { formatVND } from '../utils/formatters';
-import { X, Car, Check, Calendar, Phone, ShieldCheck, ArrowRight } from 'lucide-react';
+import {
+  CustomerLead,
+  isValidVietnamPhone,
+  PHONE_VALIDATION_ERROR,
+  submitCustomerLead
+} from '../services/leadService';
+import { X, Check, ArrowRight } from 'lucide-react';
 
 interface RentalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRequestRentalQuote: (carName: string, days: number) => void;
+  onLeadSubmitted: (lead: CustomerLead) => void;
+  dealership?: DealershipConfig;
 }
 
 const RENTAL_MODELS = [
+  {
+    id: 'vf3',
+    name: 'VinFast VF 3',
+    segment: 'Mini-eSUV 4 Chỗ',
+    dailyRate: 390000,
+    monthlyRate: 9000000,
+    freeKm: '250 km/ngày',
+    highlight: 'Nhỏ gọn cá tính, linh hoạt đô thị',
+    image: '/assets/aistudio/vinfast-vf3-mau-vang-menu_89eac25c.webp'
+  },
   {
     id: 'vf5',
     name: 'VinFast VF 5 Plus',
@@ -18,7 +35,7 @@ const RENTAL_MODELS = [
     monthlyRate: 10500000,
     freeKm: '300 km/ngày',
     highlight: 'Rất tiết kiệm, nội đô linh hoạt',
-    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=400&q=80'
+    image: '/assets/aistudio/vinfast-vf5-mau-xam-menu_137a54cb.webp'
   },
   {
     id: 'vf6',
@@ -28,7 +45,7 @@ const RENTAL_MODELS = [
     monthlyRate: 15500000,
     freeKm: '350 km/ngày',
     highlight: 'Nội thất da cao cấp, êm ái',
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80'
+    image: '/assets/aistudio/vinfast-vf6-mau-do-menu_24b654e8.webp'
   },
   {
     id: 'vf8',
@@ -38,37 +55,64 @@ const RENTAL_MODELS = [
     monthlyRate: 23000000,
     freeKm: '400 km/ngày',
     highlight: '402 mã lực, trợ lý ảo Vivi, ADAS',
-    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 'vf9',
-    name: 'VinFast VF 9 Plus',
-    segment: 'E-SUV 7 Chỗ Hạng Sang',
-    dailyRate: 1550000,
-    monthlyRate: 36000000,
-    freeKm: '450 km/ngày',
-    highlight: 'Ghế cơ trưởng massage, đẳng cấp VIP',
-    image: 'https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=400&q=80'
+    image: '/assets/aistudio/vinfast-vf8-mau-xanh-menu_e6324173.webp'
   }
 ];
 
 export const RentalModal: React.FC<RentalModalProps> = ({
   isOpen,
   onClose,
-  onRequestRentalQuote
+  onLeadSubmitted,
+  dealership = DEALERSHIP_INFO
 }) => {
   const [selectedRentalCar, setSelectedRentalCar] = useState<string>('vf5');
   const [rentalDays, setRentalDays] = useState<number>(3);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
+  const [pickupDate, setPickupDate] = useState<string>('');
+  const [addressOrNote, setAddressOrNote] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
   const currentCar = RENTAL_MODELS.find((m) => m.id === selectedRentalCar) || RENTAL_MODELS[0];
   const estimatedCost = currentCar.dailyRate * rentalDays;
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerName.trim()) {
+      setErrorMsg('Vui lòng nhập Họ và tên khách hàng để giữ xe.');
+      return;
+    }
+    if (!isValidVietnamPhone(phone)) {
+      setErrorMsg(PHONE_VALIDATION_ERROR);
+      return;
+    }
+
+    setErrorMsg('');
+    setIsSubmitting(true);
+
+    const lead = await submitCustomerLead({
+      customerName: customerName.trim(),
+      phone,
+      category: 'Thuê xe trải nghiệm',
+      carModel: currentCar.name,
+      details: `Thuê ${rentalDays} ngày (~${formatVND(estimatedCost)})${pickupDate ? ` | Nhận xe: ${pickupDate}` : ''}${addressOrNote.trim() ? ` | Ghi chú: ${addressOrNote.trim()}` : ''}`
+    });
+
+    setIsSubmitting(false);
+    setCustomerName('');
+    setPhone('');
+    setPickupDate('');
+    setAddressOrNote('');
+    onClose();
+    onLeadSubmitted(lead);
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
-        
+      <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[93vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -80,25 +124,26 @@ export const RentalModal: React.FC<RentalModalProps> = ({
                 Thuê Xe Điện Trải Nghiệm Tự Lái
               </h3>
               <p className="text-xs text-slate-500">
-                Trải nghiệm thực tế 1-7 ngày trước khi quyết định mua xe chính thức
+                Trải nghiệm thực tế 1-14 ngày trước khi quyết định mua xe chính thức
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-xl hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-xl hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
           {/* Procedure benefits */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-slate-700">
             <div className="flex items-center gap-2">
               <Check size={16} className="text-emerald-600 shrink-0" />
-              <span>Giao xe tận nhà tại Bình Phước & Đồng Nai</span>
+              <span>Hỗ trợ giao nhận xe tận nơi nhanh chóng</span>
             </div>
             <div className="flex items-center gap-2">
               <Check size={16} className="text-emerald-600 shrink-0" />
@@ -113,7 +158,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({
           {/* Model list */}
           <div className="space-y-2.5">
             <span className="block text-xs font-bold text-slate-700 uppercase">
-              Chọn dòng xe trải nghiệm
+              1. Chọn dòng xe trải nghiệm
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {RENTAL_MODELS.map((car) => {
@@ -131,7 +176,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({
                     <img
                       src={car.image}
                       alt={car.name}
-                      className="w-20 h-16 object-cover rounded-xl shrink-0"
+                      className="w-20 h-16 object-contain rounded-xl shrink-0 bg-slate-50 p-1"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">
@@ -151,7 +196,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({
           {/* Duration Selector */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
             <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-              <span>Thời gian thuê xe:</span>
+              <span>2. Thời gian thuê xe:</span>
               <span className="text-sm font-extrabold text-[#1464F4]">{rentalDays} ngày</span>
             </div>
             <input
@@ -177,32 +222,98 @@ export const RentalModal: React.FC<RentalModalProps> = ({
             </div>
           </div>
 
+          {/* Customer Information Form */}
+          <div className="p-4 bg-blue-50/40 border border-blue-100 rounded-2xl space-y-3.5">
+            <span className="block text-xs font-extrabold text-slate-800 uppercase">
+              3. Thông tin khách hàng đặt giữ xe
+            </span>
+
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
+                {errorMsg}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  HỌ VÀ TÊN KHÁCH HÀNG <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Nguyễn Văn A"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  SỐ ĐIỆN THOẠI (10 SỐ) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  maxLength={12}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0912345678"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  NGÀY DỰ KIẾN NHẬN XE
+                </label>
+                <input
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 focus:border-[#1464F4] focus:outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  ĐỊA CHỈ NHẬN XE / GHI CHÚ
+                </label>
+                <input
+                  type="text"
+                  value={addressOrNote}
+                  onChange={(e) => setAddressOrNote(e.target.value)}
+                  placeholder="Nhận tại showroom hoặc giao tận nhà..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Refund policy note */}
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
             <span className="text-base">💡</span>
             <div>
-              <strong>Chính sách đặc quyền:</strong> Nếu sau chuyến đi trải nghiệm, Quý khách quyết định đặt cọc mua xe mới tại {DEALERSHIP_INFO.showroomName}, toàn bộ chi phí thuê xe sẽ được trừ trực tiếp vào giá xe mới!
+              <strong>Chính sách đặc quyền:</strong> Nếu sau chuyến đi trải nghiệm, Quý khách quyết định đặt cọc mua xe mới tại {dealership.showroomName}, toàn bộ chi phí thuê xe sẽ được trừ trực tiếp vào giá xe mới!
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs text-slate-500">
-            Thủ tục: CCCD gắn chip + Bằng lái xe B2/B1 hợp lệ
+          {/* Footer Submit */}
+          <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-500">
+              Thủ tục: CCCD gắn chip + Bằng lái xe hợp lệ
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-6 py-3 bg-[#1464F4] hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>{isSubmitting ? 'Đang gửi yêu cầu...' : 'Xác Nhận Yêu Cầu Giữ Xe Trải Nghiệm'}</span>
+              <ArrowRight size={15} />
+            </button>
           </div>
-          <button
-            onClick={() => {
-              onRequestRentalQuote(currentCar.name, rentalDays);
-              onClose();
-            }}
-            className="w-full sm:w-auto px-6 py-2.5 bg-[#1464F4] hover:bg-blue-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"
-          >
-            <span>Yêu Cầu Giữ Xe Trải Nghiệm</span>
-            <ArrowRight size={14} />
-          </button>
-        </div>
-
+        </form>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { VINFAST_CARS, DEALERSHIP_INFO } from '../data/cars';
+import { VINFAST_CARS, DEALERSHIP_INFO, DealershipConfig } from '../data/cars';
 import { CarModel } from '../types';
 import {
   Bot,
@@ -16,6 +16,7 @@ interface AiAdvisorWidgetProps {
   onToggle: () => void;
   onSelectCarDetail: (car: CarModel) => void;
   onOpenCalculatorForCar: (car: CarModel) => void;
+  dealership?: DealershipConfig;
 }
 
 interface QuickReply {
@@ -70,13 +71,14 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
   isOpen,
   onToggle,
   onSelectCarDetail,
-  onOpenCalculatorForCar
+  onOpenCalculatorForCar,
+  dealership = DEALERSHIP_INFO
 }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome-1',
       sender: 'bot',
-      text: `Xin chào Quý khách! 👋 Em là Trợ lý AI Tư vấn 24/7 của ${DEALERSHIP_INFO.showroomName} (Đại lý ${DEALERSHIP_INFO.tier} Chính hãng).\n\nEm có thể giúp anh/chị tính giá lăn bánh, trả góp ngân hàng, so sánh thông số xe hoặc tìm mẫu xe phù hợp nhất với tầm tài chính. Anh/chị đang quan tâm nội dung nào ạ?`,
+      text: `Xin chào Quý khách! 👋 Em là Trợ lý AI Tư vấn 24/7 của ${dealership.showroomName} (Đại lý ${dealership.tier} Chính hãng).\n\nEm có thể giúp anh/chị tính giá lăn bánh, trả góp ngân hàng, so sánh thông số xe hoặc tìm mẫu xe phù hợp nhất với tầm tài chính. Anh/chị đang quan tâm nội dung nào ạ?`,
       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       quickReplies: DEFAULT_QUICK_REPLIES
     }
@@ -86,6 +88,20 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
   const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id.startsWith('welcome-')) {
+        return [
+          {
+            ...prev[0],
+            text: `Xin chào Quý khách! 👋 Em là Trợ lý AI Tư vấn 24/7 của ${dealership.showroomName} (Đại lý ${dealership.tier} Chính hãng).\n\nEm có thể giúp anh/chị tính giá lăn bánh, trả góp ngân hàng, so sánh thông số xe hoặc tìm mẫu xe phù hợp nhất với tầm tài chính. Anh/chị đang quan tâm nội dung nào ạ?`
+          }
+        ];
+      }
+      return prev;
+    });
+  }, [dealership]);
 
   useEffect(() => {
     if (isOpen) {
@@ -185,7 +201,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     if (actionCode === 'BUDGET_700_1200') {
       const cars = VINFAST_CARS.filter((c) => ['vf7', 'vf8', 'vfwild'].includes(c.id));
       return {
-        text: 'Trong tầm giá **700 triệu – 1,2 tỷ đồng**, đây là 3 mẫu SUV & Bán tải hạng C-D mạnh mẽ, sang trọng và bán chạy hàng đầu tại VinFast Bình Phước:',
+        text: `Trong tầm giá **700 triệu – 1,2 tỷ đồng**, đây là 3 mẫu SUV & Bán tải hạng C-D mạnh mẽ, sang trọng và bán chạy hàng đầu tại ${dealership.showroomName}:`,
         cars,
         quickReplies: [
           { label: '⚖️ So sánh VF 7 và VF 8', action: 'COMPARE_vf7_vf8' },
@@ -278,7 +294,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
 
     if (actionCode === 'PROMPT_INSTALLMENT') {
       return {
-        text: 'Hiện tại Đại lý VinFast 3S Bình Phước hỗ trợ **vay trả góp lên đến 80% giá trị xe** trong tối đa **8 năm (96 tháng)**, thủ tục duyệt hồ sơ nhanh trong ngày.\n\nAnh/chị bấm chọn dòng xe bên dưới để xem ngay số tiền trả trước 20% và tiền góp mỗi tháng nhé:',
+        text: `Hiện tại Đại lý ${dealership.tier} ${dealership.showroomName} hỗ trợ **vay trả góp lên đến 80% giá trị xe** trong tối đa **8 năm (96 tháng)**, thủ tục duyệt hồ sơ nhanh trong ngày.\n\nAnh/chị bấm chọn dòng xe bên dưới để xem ngay số tiền trả trước 20% và tiền góp mỗi tháng nhé:`,
         quickReplies: [
           { label: '🏦 Trả góp VF 3', action: 'LOAN_vf3' },
           { label: '🏦 Trả góp VF 5', action: 'LOAN_vf5' },
@@ -339,7 +355,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
     if (actionCode === 'PROMPT_PROMO') {
       return {
         text:
-          `🎁 **Chương trình Ưu đãi Khách hàng tại ${DEALERSHIP_INFO.showroomName} (Đại lý 3S):**\n\n` +
+          `🎁 **Chương trình Ưu đãi Khách hàng tại ${dealership.showroomName} (Đại lý ${dealership.tier}):**\n\n` +
           `🔥 **1. Chương trình "Mãnh liệt Tinh thần Việt Nam 2" (Mãnh liệt Tương lai Xanh 2):**\n` +
           `• Áp dụng cho **Khách hàng thông thường** (giảm 3% – 9% giá xe) và **Khách hàng Công an / Quân đội** (giảm 6% – 9% giá xe).\n` +
           `• *Lưu ý: Chương trình diễn ra trong thời gian ngắn.*\n\n` +
@@ -457,14 +473,28 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       return generateBotReply(userText, 'PROMPT_PROMO');
     }
 
-    if (q.includes('lai thu') || q.includes('xem xe') || q.includes('dia chi') || q.includes('showroom') || q.includes('o dau')) {
+    if (
+      q.includes('lai thu') ||
+      q.includes('xem xe') ||
+      q.includes('dia chi') ||
+      q.includes('showroom') ||
+      q.includes('o dau') ||
+      q.includes('lien he') ||
+      q.includes('so dien thoai') ||
+      q.includes('sdt') ||
+      q.includes('hotline')
+    ) {
+      const branchesText = dealership.branches
+        .map((b) => `• **${b.name}:** ${b.address}`)
+        .join('\n');
+      const hotlineText = dealership.hotline
+        ? `\n📞 **Số điện thoại liên hệ:** **${dealership.hotline}**`
+        : '';
       return {
         text:
-          `📍 **Hệ thống Showroom ${DEALERSHIP_INFO.showroomName} (Đại lý ${DEALERSHIP_INFO.tier}):**\n` +
-          `• **VinFast Bình Phước:** Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP. Đồng Nai.\n` +
-          `• **CN Đồng Xoài:** 525 Phú Riềng Đỏ, P. Bình Phước, TP. Đồng Nai.\n` +
-          `• **CN Phước Long:** KP Bình Giang, P. Phước Long, TP. Đồng Nai.\n` +
-          `• **CN Bình Long:** Đường Nguyễn Huệ, P. Bình Long, TP. Đồng Nai.`,
+          `📍 **Hệ thống Showroom ${dealership.showroomName} (Đại lý ${dealership.tier}):**\n` +
+          branchesText +
+          hotlineText,
         quickReplies: DEFAULT_QUICK_REPLIES
       };
     }
@@ -483,7 +513,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
 
     if (q === 'xin chao' || q === 'chao' || q === 'hi' || q === 'hello' || q === 'alo') {
       return {
-        text: `Dạ **${DEALERSHIP_INFO.showroomName}** xin chào anh/chị ạ! 👋 Anh/chị đang quan tâm dòng xe nào hay cần tính giá lăn bánh, trả góp cứ nhắn em hỗ trợ ngay nhé!`,
+        text: `Dạ **${dealership.showroomName}** xin chào anh/chị ạ! 👋 Anh/chị đang quan tâm dòng xe nào hay cần tính giá lăn bánh, trả góp cứ nhắn em hỗ trợ ngay nhé!`,
         quickReplies: DEFAULT_QUICK_REPLIES
       };
     }
@@ -535,7 +565,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       {
         id: 'welcome-' + Date.now(),
         sender: 'bot',
-        text: `Xin chào Quý khách! 👋 Em là Trợ lý AI Tư vấn 24/7 của ${DEALERSHIP_INFO.showroomName}.\nAnh/chị cần tính giá lăn bánh, trả góp hay so sánh dòng xe nào cứ chọn bên dưới nhé!`,
+        text: `Xin chào Quý khách! 👋 Em là Trợ lý AI Tư vấn 24/7 của ${dealership.showroomName}.\nAnh/chị cần tính giá lăn bánh, trả góp hay so sánh dòng xe nào cứ chọn bên dưới nhé!`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         quickReplies: DEFAULT_QUICK_REPLIES
       }
@@ -612,7 +642,7 @@ export const AiAdvisorWidget: React.FC<AiAdvisorWidgetProps> = ({
       <div className="bg-slate-50 border-b border-slate-200/70 px-3.5 py-2 flex items-center justify-between text-[11px] shrink-0">
         <span className="text-slate-600 font-medium flex items-center gap-1">
           <ShieldCheck size={13} className="text-[#1464F4]" />
-          Đại lý 3S Bình Phước
+          Đại lý {dealership.tier} {dealership.showroomName.replace(/^VinFast\s+/i, '')}
         </span>
       </div>
 

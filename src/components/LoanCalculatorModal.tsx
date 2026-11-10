@@ -19,17 +19,27 @@ import {
   calculatePromotionDiscount,
   calculateRollingCosts
 } from '../data/pricingConfig';
+import {
+  CustomerLead,
+  isValidVietnamPhone,
+  PHONE_VALIDATION_ERROR,
+  submitCustomerLead
+} from '../services/leadService';
 
 interface LoanCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialCarId?: string;
+  isHomePage?: boolean;
+  onLeadSubmitted?: (lead: CustomerLead) => void;
 }
 
 export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
   isOpen,
   onClose,
-  initialCarId
+  initialCarId,
+  isHomePage = false,
+  onLeadSubmitted
 }) => {
   const [selectedCarId, setSelectedCarId] = useState<string>(initialCarId || 'vf3');
   const [selectedVersionName, setSelectedVersionName] = useState<string>('');
@@ -43,6 +53,15 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
   const [loanMonths, setLoanMonths] = useState<number>(72); // 6 years
   const [interestRateYear, setInterestRateYear] = useState<number>(7.5); // 7.5% per annum
   const [activeTab, setActiveTab] = useState<'onRoad' | 'installment'>('onRoad');
+
+  // Form nhận báo giá trên trang chủ
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerProvince, setCustomerProvince] = useState<string>('Bình Phước');
+  const [customerNote, setCustomerNote] = useState<string>('');
+  const [formError, setFormError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const selectCarId = useId();
 
   if (!isOpen) return null;
@@ -553,16 +572,135 @@ export const LoanCalculatorModal: React.FC<LoanCalculatorModalProps> = ({
             </div>
           )}
 
-          {/* Action bottom button */}
-          <div className="pt-2 flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2.5 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+          {/* Form nhận báo giá lăn bánh & gói quà tặng (chỉ hiển thị ở Trang chủ) */}
+          {isHomePage ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!customerName.trim()) {
+                  setFormError('Vui lòng nhập Họ và tên Quý khách.');
+                  return;
+                }
+                if (!isValidVietnamPhone(customerPhone)) {
+                  setFormError(PHONE_VALIDATION_ERROR);
+                  return;
+                }
+                setFormError('');
+                setIsSubmitting(true);
+
+                const versionInfo = currentVersion ? ` (${currentVersion.name})` : '';
+                const lead = await submitCustomerLead({
+                  customerName: customerName.trim(),
+                  phone: customerPhone,
+                  category: 'Báo giá & Lăn bánh',
+                  carModel: `${currentCar.name}${versionInfo}`,
+                  province: customerProvince,
+                  details: `Màu: ${activeColorObj.name} | Lăn bánh tạm tính: ${formatVND(totalOnRoadPrice)} | Vay: ${loanPercent}% trong ${loanMonths} tháng${customerNote.trim() ? ` | Ghi chú: ${customerNote.trim()}` : ''}`
+                });
+
+                setIsSubmitting(false);
+                setCustomerName('');
+                setCustomerPhone('');
+                setCustomerNote('');
+                onClose();
+                if (onLeadSubmitted) {
+                  onLeadSubmitted(lead);
+                }
+              }}
+              className="pt-4 border-t border-slate-200 space-y-4"
             >
-              Đóng
-            </button>
-          </div>
+              {formError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
+                  {formError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                    HỌ VÀ TÊN QUÝ KHÁCH <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Nguyễn Văn A"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                    SỐ ĐIỆN THOẠI NHẬN BÁO GIÁ <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    maxLength={12}
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="0912345678"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                    TỈNH / THÀNH PHỐ
+                  </label>
+                  <select
+                    value={customerProvince}
+                    onChange={(e) => setCustomerProvince(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm font-medium text-slate-800 focus:border-[#1464F4] focus:outline-hidden transition-colors"
+                  >
+                    <option value="Bình Phước">Bình Phước</option>
+                    <option value="Đồng Nai">Đồng Nai</option>
+                    <option value="Đắk Lắk">Đắk Lắk</option>
+                    <option value="Bình Dương">Bình Dương</option>
+                    <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                    <option value="Tỉnh/Thành khác">Tỉnh/Thành khác</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                    GHI CHÚ THÊM (TÙY CHỌN)
+                  </label>
+                  <input
+                    type="text"
+                    value={customerNote}
+                    onChange={(e) => setCustomerNote(e.target.value)}
+                    placeholder="Thời gian mua, yêu cầu gói phụ kiện..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#1464F4] focus:outline-hidden transition-colors"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#1464F4] hover:bg-blue-700 disabled:bg-blue-400 text-white font-extrabold text-xs sm:text-sm shadow-[0_6px_20px_rgba(20,100,244,0.3)] flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
+              >
+                <Send size={16} />
+                <span>
+                  {isSubmitting
+                    ? 'Đang gửi yêu cầu...'
+                    : 'Nhận Báo Giá Lăn Bánh & Gói Quà Tặng Thêm Từ Đại Lý'}
+                </span>
+              </button>
+            </form>
+          ) : (
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

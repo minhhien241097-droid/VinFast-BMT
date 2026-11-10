@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HeaderMobile } from './components/HeaderMobile';
 import { Sidebar } from './components/Sidebar';
 import { BannerSection } from './components/BannerSection';
@@ -6,13 +6,29 @@ import { CarCatalog } from './components/CarCatalog';
 import { LoanCalculatorModal } from './components/LoanCalculatorModal';
 import { PromotionsModal } from './components/PromotionsModal';
 import { CarDetailModal } from './components/CarDetailModal';
-import { DEALERSHIP_INFO } from './data/cars';
+import { TestDriveModal } from './components/TestDriveModal';
+import { MaintenanceModal } from './components/MaintenanceModal';
+import { InsuranceRescueModal } from './components/InsuranceRescueModal';
+import { AccessoriesModal } from './components/AccessoriesModal';
+import { RentalModal } from './components/RentalModal';
+import { LeadConfirmationModal } from './components/LeadConfirmationModal';
+import { AdminLeadsModal } from './components/AdminLeadsModal';
+import { getDealershipByBranchId } from './data/cars';
 import { CarModel } from './types';
+import { CustomerLead } from './services/leadService';
 import { FloatingActions } from './components/FloatingActions';
 import { AiAdvisorWidget } from './components/AiAdvisorWidget';
-import { MapPin, ShieldCheck, Zap } from 'lucide-react';
+import { Lock, MapPin, Phone, ShieldCheck, Zap } from 'lucide-react';
+
+const extractBranchIdFromPath = (pathname: string): string => {
+  const segments = pathname.split('/').filter(Boolean);
+  return segments[0] || '';
+};
 
 export default function App() {
+  const [branchId, setBranchId] = useState<string>(() =>
+    extractBranchIdFromPath(window.location.pathname)
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAiAdvisorOpen, setIsAiAdvisorOpen] = useState(false);
 
@@ -21,7 +37,26 @@ export default function App() {
   const [calculatorCarId, setCalculatorCarId] = useState<string>('vf3');
 
   const [isPromotionsOpen, setIsPromotionsOpen] = useState(false);
+  const [isTestDriveOpen, setIsTestDriveOpen] = useState(false);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
+  const [isInsuranceOpen, setIsInsuranceOpen] = useState(false);
+  const [isAccessoriesOpen, setIsAccessoriesOpen] = useState(false);
+  const [isRentalOpen, setIsRentalOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
   const [detailCar, setDetailCar] = useState<CarModel | null>(null);
+  const [confirmedLead, setConfirmedLead] = useState<CustomerLead | null>(null);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setBranchId(extractBranchIdFromPath(window.location.pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const isHomePage = !branchId;
+  const currentDealership = getDealershipByBranchId(branchId);
 
   const handleSelectOverview = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -38,6 +73,7 @@ export default function App() {
       <HeaderMobile
         isMenuOpen={isMobileMenuOpen}
         onToggleMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        dealership={currentDealership}
       />
 
       {/* Main Layout Wrapper */}
@@ -50,6 +86,13 @@ export default function App() {
           onSelectOverview={handleSelectOverview}
           onOpenCalculator={() => setIsCalculatorOpen(true)}
           onOpenPromotions={() => setIsPromotionsOpen(true)}
+          onOpenTestDrive={() => setIsTestDriveOpen(true)}
+          onOpenMaintenance={() => setIsMaintenanceOpen(true)}
+          onOpenInsurance={() => setIsInsuranceOpen(true)}
+          onOpenAccessories={() => setIsAccessoriesOpen(true)}
+          onOpenRental={() => setIsRentalOpen(true)}
+          isHomePage={isHomePage}
+          dealership={currentDealership}
         />
 
         {/* Right Main Content Area */}
@@ -66,44 +109,44 @@ export default function App() {
             onOpenCalculatorForCar={handleOpenCalculatorForCar}
           />
 
-          {/* TẦNG 3: KHỐI THÔNG TIN ĐẠI LÝ VINFAST BÌNH PHƯỚC */}
+          {/* TẦNG 3: KHỐI THÔNG TIN ĐẠI LÝ VINFAST THEO CHI NHÁNH (/:branchId) */}
           <section className="p-6 sm:p-7 bg-white rounded-[22px] border border-slate-100 shadow-[0_4px_18px_rgba(0,0,0,0.03)] space-y-5">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-lg text-slate-900 tracking-wide uppercase">
-                    {DEALERSHIP_INFO.showroomName}
+                    {currentDealership.showroomName}
                   </span>
                   <span className="bg-purple-100 text-[#6D28D9] text-xs font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
-                    Đại lý {DEALERSHIP_INFO.tier} chính hãng
+                    Đại lý {currentDealership.tier} chính hãng
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  {DEALERSHIP_INFO.role} - Phụ trách {DEALERSHIP_INFO.coverageArea}
+                  {currentDealership.role} - Phụ trách {currentDealership.coverageArea}
                 </p>
               </div>
+
+              {currentDealership.hotline && (
+                <a
+                  href={`tel:${currentDealership.hotline.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1464F4] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-all shrink-0"
+                >
+                  <Phone size={16} />
+                  <span>Liên hệ: {currentDealership.hotline}</span>
+                </a>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600">
               <div className="flex items-start gap-2">
                 <MapPin size={16} className="text-[#1464F4] shrink-0 mt-0.5" />
                 <div className="space-y-1.5">
-                  <div>
-                    <span className="font-bold text-slate-800">VinFast Bình Phước:</span>{' '}
-                    <span>Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP Đồng Nai</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-800">CN Đồng Xoài:</span>{' '}
-                    <span>525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-800">CN Phước Long:</span>{' '}
-                    <span>KP Bình Giang, P. Phước Long, TP Đồng Nai</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-800">CN Bình Long:</span>{' '}
-                    <span>Đường Nguyễn Huệ, P Bình Long, TP Đồng Nai</span>
-                  </div>
+                  {currentDealership.branches.map((branch, idx) => (
+                    <div key={idx}>
+                      <span className="font-bold text-slate-800">{branch.name}:</span>{' '}
+                      <span>{branch.address}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -125,11 +168,23 @@ export default function App() {
             </div>
           </section>
 
-          {/* Copyright Footer */}
+          {/* Copyright Footer + Admin Login on VinFast 3S Home Page */}
           <footer className="py-4 text-xs text-slate-500 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-center sm:text-left">
-              © {new Date().getFullYear()} {DEALERSHIP_INFO.brandName} - Đại lý ủy quyền VinFast {DEALERSHIP_INFO.tier}. Bảng giá & chính sách được cập nhật chính hãng VinFast Việt Nam.
+              © {new Date().getFullYear()} {currentDealership.brandName} - Đại lý ủy quyền {currentDealership.showroomName}
+              {currentDealership.showroomName.includes(currentDealership.tier) ? '' : ` ${currentDealership.tier}`}. Bảng giá & chính sách được cập nhật chính hãng VinFast Việt Nam.
             </div>
+
+            {isHomePage && (
+              <button
+                type="button"
+                onClick={() => setIsAdminOpen(true)}
+                className="inline-flex items-center gap-1.5 text-slate-400 hover:text-[#1464F4] font-semibold transition-colors cursor-pointer shrink-0"
+              >
+                <Lock size={12} />
+                <span>Đăng nhập</span>
+              </button>
+            )}
           </footer>
 
         </main>
@@ -147,6 +202,7 @@ export default function App() {
         onToggle={() => setIsAiAdvisorOpen((prev) => !prev)}
         onSelectCarDetail={(car) => setDetailCar(car)}
         onOpenCalculatorForCar={handleOpenCalculatorForCar}
+        dealership={currentDealership}
       />
 
       {/* Modals */}
@@ -154,6 +210,8 @@ export default function App() {
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
         initialCarId={calculatorCarId}
+        isHomePage={isHomePage}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
       />
 
       <PromotionsModal
@@ -161,10 +219,53 @@ export default function App() {
         onClose={() => setIsPromotionsOpen(false)}
       />
 
+      <TestDriveModal
+        isOpen={isTestDriveOpen}
+        onClose={() => setIsTestDriveOpen(false)}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
+      />
+
+      <MaintenanceModal
+        isOpen={isMaintenanceOpen}
+        onClose={() => setIsMaintenanceOpen(false)}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
+      />
+
+      <InsuranceRescueModal
+        isOpen={isInsuranceOpen}
+        onClose={() => setIsInsuranceOpen(false)}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
+      />
+
+      <AccessoriesModal
+        isOpen={isAccessoriesOpen}
+        onClose={() => setIsAccessoriesOpen(false)}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
+      />
+
+      <RentalModal
+        isOpen={isRentalOpen}
+        onClose={() => setIsRentalOpen(false)}
+        dealership={currentDealership}
+        onLeadSubmitted={(lead) => setConfirmedLead(lead)}
+      />
+
       <CarDetailModal
         car={detailCar}
         onClose={() => setDetailCar(null)}
         onOpenCalculator={handleOpenCalculatorForCar}
+      />
+
+      {/* Popup Xác Nhận Gửi Yêu Cầu Thành Công */}
+      <LeadConfirmationModal
+        lead={confirmedLead}
+        onClose={() => setConfirmedLead(null)}
+      />
+
+      {/* Hệ Thống Đăng Nhập & Quản Trị Dữ Liệu Admin (chỉ trên trang VinFast 3S) */}
+      <AdminLeadsModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
       />
     </div>
   );

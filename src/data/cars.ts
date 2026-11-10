@@ -799,24 +799,124 @@ export const VINFAST_CARS: CarModel[] = [
   }
 ];
 
-export const DEALERSHIP_INFO = {
+export interface DealershipBranch {
+  name: string;
+  address: string;
+}
+
+export interface DealershipConfig {
+  id: string;
+  brandName: string;
+  tier: string;
+  showroomName: string;
+  shortRegionName: string;
+  role: string;
+  coverageArea: string;
+  hotline?: string;
+  branches: DealershipBranch[];
+  avatarUrl: string;
+  bannerPcUrl: string;
+  bannerMobileUrl: string;
+}
+
+const SHARED_ASSETS = {
   brandName: 'CỔNG THÔNG TIN VINFAST',
   tier: '3S',
-  showroomName: 'VinFast Bình Phước',
   role: 'Tư vấn bán hàng',
-  coverageArea: 'Khu vực Bình Phước & Đồng Nai & Toàn Quốc',
-  hotline: '0797.868.434',
-  zaloUrl: 'https://zalo.me/0797868434',
-  facebookUrl: 'https://www.facebook.com/vfbinhphuoc',
-  facebookName: 'VinFast Bình Phước',
-  address: 'QL14, Phường Tân Phú, TP. Đồng Xoài, Tỉnh Bình Phước',
-  branches: [
-    { name: 'VinFast Bình Phước', address: 'Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP Đồng Nai' },
-    { name: 'CN Đồng Xoài', address: '525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai' },
-    { name: 'CN Phước Long', address: 'KP Bình Giang, P. Phước Long, TP Đồng Nai' },
-    { name: 'CN Bình Long', address: 'Đường Nguyễn Huệ, P Bình Long, TP Đồng Nai' }
-  ],
   avatarUrl: 'https://w.ladicdn.com/5d9a96b88c0aa631d811d695/thiet_ke_chua_co_ten-removebg-preview-20261029033424-lym7k.png',
   bannerPcUrl: 'https://w.ladicdn.com/5d9a96b88c0aa631d811d695/len-doi-xe-dien-giua-pho-hien-dai-20261029025733-pvogp.png',
   bannerMobileUrl: 'https://w.ladicdn.com/5d9a96b88c0aa631d811d695/len-doi-xe-dien-chon-vinfast-20261029025733-5m8uy.png'
+};
+
+const BINH_PHUOC_BRANCHES: DealershipBranch[] = [
+  { name: 'VinFast Bình Phước', address: 'Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP Đồng Nai' },
+  { name: 'CN Đồng Xoài', address: '525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai' },
+  { name: 'CN Phước Long', address: 'KP Bình Giang, P. Phước Long, TP Đồng Nai' },
+  { name: 'CN Bình Long', address: 'Đường Nguyễn Huệ, P Bình Long, TP Đồng Nai' }
+];
+
+export const BRANCH_CONFIGS: Record<string, DealershipConfig> = {
+  home: {
+    id: 'home',
+    ...SHARED_ASSETS,
+    showroomName: 'VinFast 3S',
+    shortRegionName: '3S',
+    coverageArea: 'Hỗ trợ tư vấn & giao xe Toàn Quốc',
+    branches: [
+      { name: 'VinFast 3S', address: 'Đường D1, KCN Bắc Đồng Phú, Phường Đồng Phú, TP Đồng Nai' },
+      { name: 'CN Đồng Xoài', address: '525 Phú Riềng Đỏ, P Bình Phước, TP Đồng Nai' },
+      { name: 'CN Phước Long', address: 'KP Bình Giang, P. Phước Long, TP Đồng Nai' },
+      { name: 'CN Bình Long', address: 'Đường Nguyễn Huệ, P Bình Long, TP Đồng Nai' }
+    ]
+  },
+  'binh-phuoc': {
+    id: 'binh-phuoc',
+    ...SHARED_ASSETS,
+    showroomName: 'VinFast Bình Phước',
+    shortRegionName: 'BÌNH PHƯỚC',
+    coverageArea: 'Khu vực Bình Phước & Đồng Nai & Toàn Quốc',
+    branches: BINH_PHUOC_BRANCHES
+  },
+  'dong-xoai': {
+    id: 'dong-xoai',
+    ...SHARED_ASSETS,
+    showroomName: 'VinFast Đồng Xoài',
+    shortRegionName: 'ĐỒNG XOÀI',
+    coverageArea: 'Khu vực Bình Phước & Đồng Nai & Toàn Quốc',
+    branches: BINH_PHUOC_BRANCHES
+  },
+  'dak-lak': {
+    id: 'dak-lak',
+    ...SHARED_ASSETS,
+    showroomName: 'VinFast Đắk Lắk',
+    shortRegionName: 'ĐẮK LẮK',
+    coverageArea: 'Khu vực Đắk Lắk & Tây Nguyên & Toàn Quốc',
+    hotline: '083 576 7879',
+    branches: [
+      { name: 'VinFast Đắk Lắk', address: 'Km9, Quốc Lộ 14, Phường Tân An, Tỉnh Đắk Lắk.' }
+    ]
+  }
+};
+
+// Mặc định sử dụng cấu hình Trang chủ (VinFast 3S) khi truy cập "/"
+export const DEALERSHIP_INFO: DealershipConfig = BRANCH_CONFIGS['home'];
+
+// Chuẩn hóa branchId trên URL (ví dụ: "/binh-phuoc", "/dong-xoai", "/dak-lak")
+export const getDealershipByBranchId = (rawBranchId?: string | null): DealershipConfig => {
+  if (!rawBranchId) return BRANCH_CONFIGS['home'];
+
+  const decoded = decodeURIComponent(rawBranchId).trim();
+  if (!decoded) return BRANCH_CONFIGS['home'];
+
+  const normalizedSlug = decoded
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const compactSlug = normalizedSlug.replace(/-/g, '');
+
+  if (normalizedSlug === 'binh-phuoc' || compactSlug === 'binhphuoc' || compactSlug === 'bp') {
+    return BRANCH_CONFIGS['binh-phuoc'];
+  }
+  if (normalizedSlug === 'dong-xoai' || compactSlug === 'dongxoai' || compactSlug === 'dx') {
+    return BRANCH_CONFIGS['dong-xoai'];
+  }
+  if (
+    normalizedSlug === 'dak-lak' ||
+    compactSlug === 'daklak' ||
+    normalizedSlug === 'dac-lac' ||
+    compactSlug === 'daclac' ||
+    compactSlug === 'dl'
+  ) {
+    return BRANCH_CONFIGS['dak-lak'];
+  }
+
+  if (BRANCH_CONFIGS[normalizedSlug]) {
+    return BRANCH_CONFIGS[normalizedSlug];
+  }
+
+  return BRANCH_CONFIGS['home'];
 };

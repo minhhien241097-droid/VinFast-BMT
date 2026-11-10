@@ -1,6 +1,17 @@
 import React from 'react';
-import { DEALERSHIP_INFO } from '../data/cars';
-import { Calculator, Gift, LayoutGrid } from 'lucide-react';
+import { DealershipConfig, DEALERSHIP_INFO } from '../data/cars';
+import {
+  Calculator,
+  CalendarClock,
+  Car,
+  Gift,
+  KeyRound,
+  LayoutGrid,
+  MessageSquareMore,
+  Phone,
+  ShieldCheck,
+  Wrench
+} from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,6 +19,13 @@ interface SidebarProps {
   onSelectOverview: () => void;
   onOpenCalculator: () => void;
   onOpenPromotions: () => void;
+  onOpenTestDrive?: () => void;
+  onOpenMaintenance?: () => void;
+  onOpenInsurance?: () => void;
+  onOpenAccessories?: () => void;
+  onOpenRental?: () => void;
+  isHomePage?: boolean;
+  dealership?: DealershipConfig;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -15,9 +33,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onSelectOverview,
   onOpenCalculator,
-  onOpenPromotions
+  onOpenPromotions,
+  onOpenTestDrive,
+  onOpenMaintenance,
+  onOpenInsurance,
+  onOpenAccessories,
+  onOpenRental,
+  isHomePage = false,
+  dealership = DEALERSHIP_INFO
 }) => {
-  const menuItems = [
+  const baseMenuItems = [
     {
       id: 'calculator',
       label: 'Dự toán lăn bánh & Trả góp',
@@ -32,6 +57,63 @@ export const Sidebar: React.FC<SidebarProps> = ({
       action: onOpenPromotions
     }
   ];
+
+  const homeExtraMenuItems = isHomePage
+    ? [
+        ...(onOpenTestDrive
+          ? [
+              {
+                id: 'test-drive',
+                label: 'Đăng ký lái thử',
+                icon: KeyRound,
+                action: onOpenTestDrive
+              }
+            ]
+          : []),
+        ...(onOpenMaintenance
+          ? [
+              {
+                id: 'maintenance',
+                label: 'Đặt lịch bảo dưỡng',
+                icon: CalendarClock,
+                action: onOpenMaintenance
+              }
+            ]
+          : []),
+        ...(onOpenInsurance
+          ? [
+              {
+                id: 'insurance-rescue',
+                label: 'Bảo hiểm & Cứu hộ',
+                icon: ShieldCheck,
+                action: onOpenInsurance
+              }
+            ]
+          : []),
+        ...(onOpenAccessories
+          ? [
+              {
+                id: 'accessories',
+                label: 'Linh kiện & Phụ kiện',
+                icon: Wrench,
+                action: onOpenAccessories
+              }
+            ]
+          : []),
+        ...(onOpenRental
+          ? [
+              {
+                id: 'rental',
+                label: 'Thuê xe trải nghiệm',
+                icon: Car,
+                action: onOpenRental
+              }
+            ]
+          : [])
+      ]
+    : [];
+
+  const menuItems = [...baseMenuItems, ...homeExtraMenuItems];
 
   return (
     <>
@@ -55,10 +137,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between md:justify-center gap-2 mb-5 pb-2 border-b md:border-b-0 border-slate-100">
             <div className="flex items-center gap-2">
               <span className="text-[12.5px] font-extrabold text-[#0F172A] tracking-wider uppercase">
-                {DEALERSHIP_INFO.brandName}
+                {dealership.brandName}
               </span>
               <span className="hidden md:inline-block bg-[#EDE9FE] text-[#6D28D9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                {DEALERSHIP_INFO.tier}
+                {dealership.tier}
               </span>
             </div>
 
@@ -75,8 +157,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-center pb-4 mb-3 border-b border-slate-100">
             <div className="w-[74px] h-[74px] rounded-2xl mx-auto mb-2.5 flex items-center justify-center p-1 bg-slate-50 border border-slate-100 shadow-xs overflow-hidden">
               <img
-                src={DEALERSHIP_INFO.avatarUrl}
-                alt={DEALERSHIP_INFO.showroomName}
+                src={dealership.avatarUrl}
+                alt={dealership.showroomName}
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
@@ -84,13 +166,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               />
             </div>
             <div className="text-[14px] font-extrabold text-[#0F172A] uppercase tracking-tight">
-              {DEALERSHIP_INFO.showroomName}
+              {dealership.showroomName}
             </div>
             <div className="inline-block bg-[#EFF6FF] border border-[#DBEAFE] text-[#1464F4] text-[11.5px] font-bold px-2.5 py-0.5 rounded-md my-1">
-              {DEALERSHIP_INFO.role}
+              {dealership.role}
             </div>
             <div className="text-[11.5px] text-[#64748B]">
-              {DEALERSHIP_INFO.coverageArea}
+              {dealership.coverageArea}
             </div>
           </div>
 
@@ -139,6 +221,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </nav>
         </div>
+
+        {/* Home Page Contact Block (Zalo, Hotline, Fanpage) */}
+        {isHomePage && (
+          <div className="pt-4 mt-4 border-t border-slate-100 space-y-2.5">
+            <a
+              href="https://zalo.me/0797868434"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#EEF4FF] hover:bg-blue-100/80 text-[#1464F4] font-bold text-[13px] flex items-center justify-center gap-2 transition-colors"
+            >
+              <MessageSquareMore size={16} className="text-slate-700" />
+              <span>Zalo: 0797.868.434</span>
+            </a>
+
+            <a
+              href="tel:0797868434"
+              className="w-full py-1.5 px-4 text-[#334155] hover:text-[#1464F4] font-bold text-[13px] flex items-center justify-center gap-2 transition-colors"
+            >
+              <Phone size={15} className="text-[#1464F4]" />
+              <span>Hotline: 0797.868.434</span>
+            </a>
+
+            <a
+              href="https://www.facebook.com/vfbinhphuoc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[#1464F4] font-bold text-[13px] flex items-center justify-center gap-2 transition-colors shadow-2xs"
+            >
+              <span className="w-4 h-4 rounded-full bg-[#1877F2] text-white flex items-center justify-center text-[11px] font-black leading-none">
+                f
+              </span>
+              <span>VinFast Bình Phước</span>
+            </a>
+          </div>
+        )}
+
+        {/* Optional Phone Button (only shown for branches with hotline like Đắk Lắk) */}
+        {!isHomePage && dealership.hotline && (
+          <div className="pt-4 mt-4 border-t border-slate-100">
+            <a
+              href={`tel:${dealership.hotline.replace(/\s+/g, '')}`}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#1464F4] hover:bg-blue-700 text-white font-bold text-[13px] shadow-xs transition-all"
+            >
+              <Phone size={15} />
+              <span>Liên hệ: {dealership.hotline}</span>
+            </a>
+          </div>
+        )}
       </aside>
     </>
   );

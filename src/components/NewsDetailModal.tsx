@@ -84,13 +84,7 @@ export const NewsDetailModal: React.FC<NewsDetailModalProps> = ({
         {/* Footer Actions */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-slate-600">
-            <span>Tư vấn qua Hotline:</span>
-            <a
-              href={`tel:${DEALERSHIP_INFO.hotline.replace(/\./g, '')}`}
-              className="font-extrabold text-[#1464F4] hover:underline"
-            >
-              {DEALERSHIP_INFO.hotline}
-            </a>
+            <span className="font-bold text-slate-700">{DEALERSHIP_INFO.showroomName}</span>
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto">
