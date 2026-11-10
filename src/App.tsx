@@ -58,6 +58,32 @@ export default function App() {
   const isHomePage = !branchId;
   const currentDealership = getDealershipByBranchId(branchId);
 
+  useEffect(() => {
+    document.title = currentDealership.seoTitle;
+
+    const setMetaTag = (selector: string, content: string) => {
+      const el = document.querySelector(selector);
+      if (el) {
+        el.setAttribute('content', content);
+      }
+    };
+
+    setMetaTag('meta[name="description"]', currentDealership.seoDescription);
+    setMetaTag('meta[property="og:title"]', currentDealership.seoTitle);
+    setMetaTag('meta[property="og:description"]', currentDealership.seoDescription);
+    setMetaTag('meta[name="twitter:title"]', currentDealership.seoTitle);
+    setMetaTag('meta[name="twitter:description"]', currentDealership.seoDescription);
+
+    let faviconEl = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!faviconEl) {
+      faviconEl = document.createElement('link');
+      faviconEl.rel = 'icon';
+      faviconEl.type = 'image/png';
+      document.head.appendChild(faviconEl);
+    }
+    faviconEl.href = '/assets/aistudio/logo_trang_7pm_thumb_3dfc1c1b.png';
+  }, [currentDealership]);
+
   const handleSelectOverview = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
