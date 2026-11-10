@@ -1,8 +1,32 @@
 {
   "rewrites": [
     {
+      "source": "/dong-xoai",
+      "destination": "/dong-xoai/index.html"
+    },
+    {
+      "source": "/dongxoai",
+      "destination": "/dongxoai/index.html"
+    },
+    {
+      "source": "/dak-lak",
+      "destination": "/dak-lak/index.html"
+    },
+    {
+      "source": "/daklak",
+      "destination": "/daklak/index.html"
+    },
+    {
       "source": "/bmt",
-      "destination": "/index.html"
+      "destination": "/bmt/index.html"
+    },
+    {
+      "source": "/binh-phuoc",
+      "destination": "/binh-phuoc/index.html"
+    },
+    {
+      "source": "/binhphuoc",
+      "destination": "/binhphuoc/index.html"
     },
     {
       "source": "/(.*)",

@@ -844,7 +844,7 @@ export const BRANCH_CONFIGS: Record<string, DealershipConfig> = {
     showroomName: 'VinFast 3S',
     shortRegionName: '3S',
     coverageArea: 'Hỗ trợ tư vấn & giao xe Toàn Quốc',
-    seoTitle: 'Thông Tin & Báo Giá Các Dòng Xe Điện VinFast Chính Hãng - Đại Lý 3S',
+    seoTitle: 'Thông Tin & Báo Giá Xe VinFast 3S',
     seoDescription:
       'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại Đại lý VinFast 3S. Dự toán chi phí lăn bánh trọn gói, tính trả góp ngân hàng lãi suất ưu đãi và đặc quyền khuyến mãi hấp dẫn!',
     branches: [
@@ -860,9 +860,9 @@ export const BRANCH_CONFIGS: Record<string, DealershipConfig> = {
     showroomName: 'VinFast Bình Phước',
     shortRegionName: 'BÌNH PHƯỚC',
     coverageArea: 'Khu vực Bình Phước & Đồng Nai & Toàn Quốc',
-    seoTitle: 'Thông Tin & Báo Giá Các Dòng Xe Điện VinFast Tại Bình Phước',
+    seoTitle: 'Thông Tin & Báo Giá Xe VinFast tại Bình Phước',
     seoDescription:
-      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại VinFast Bình Phước. Dự toán giá lăn bánh trọn gói, hỗ trợ trả góp ngân hàng 80% và ưu đãi đặc quyền hấp dẫn!',
+      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại Bình Phước. Dự toán chi phí lăn bánh trọn gói, tính trả góp ngân hàng lãi suất ưu đãi và đặc quyền khuyến mãi hấp dẫn!',
     branches: BINH_PHUOC_BRANCHES
   },
   'dong-xoai': {
@@ -871,9 +871,9 @@ export const BRANCH_CONFIGS: Record<string, DealershipConfig> = {
     showroomName: 'VinFast Đồng Xoài',
     shortRegionName: 'ĐỒNG XOÀI',
     coverageArea: 'Khu vực Bình Phước & Đồng Nai & Toàn Quốc',
-    seoTitle: 'Thông Tin & Báo Giá Các Dòng Xe Điện VinFast Tại Đồng Xoài',
+    seoTitle: 'Thông Tin & Báo Giá Xe VinFast tại Đồng Xoài',
     seoDescription:
-      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại VinFast Đồng Xoài. Dự toán giá lăn bánh trọn gói, hỗ trợ trả góp ngân hàng 80% và ưu đãi đặc quyền hấp dẫn!',
+      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại Đồng Xoài. Dự toán chi phí lăn bánh trọn gói, tính trả góp ngân hàng lãi suất ưu đãi và đặc quyền khuyến mãi hấp dẫn!',
     branches: BINH_PHUOC_BRANCHES
   },
   'dak-lak': {
@@ -883,9 +883,9 @@ export const BRANCH_CONFIGS: Record<string, DealershipConfig> = {
     shortRegionName: 'ĐẮK LẮK',
     coverageArea: 'Khu vực Đắk Lắk & Tây Nguyên & Toàn Quốc',
     hotline: '083 576 7879',
-    seoTitle: 'Thông Tin & Báo Giá Các Dòng Xe Điện VinFast Tại Đắk Lắk',
+    seoTitle: 'Thông Tin & Báo Giá Xe VinFast tại Đắk Lắk',
     seoDescription:
-      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại VinFast Đắk Lắk. Dự toán giá lăn bánh trọn gói, hỗ trợ trả góp ngân hàng 80% và ưu đãi đặc quyền hấp dẫn!',
+      'Thông tin và báo giá các dòng xe điện VinFast mới nhất tại Đắk Lắk. Dự toán chi phí lăn bánh trọn gói, tính trả góp ngân hàng lãi suất ưu đãi và đặc quyền khuyến mãi hấp dẫn!',
     branches: [
       { name: 'VinFast Đắk Lắk', address: 'Km9, Quốc Lộ 14, Phường Tân An, Tỉnh Đắk Lắk.' }
     ]
